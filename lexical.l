@@ -4,7 +4,7 @@
 /* C code to be copied verbatim */
 #include <stdio.h>
 
-bool equals(char* string1, char* string2)
+int equals(char* string1, char* string2)
 	{
 	int i=0;
 	while(string1[i]!=0 && string2[i]!=0 && string1[i]==string2[i]){
@@ -15,43 +15,46 @@ bool equals(char* string1, char* string2)
 
 %}
 
+%option noyywrap
+
 DIGIT [0-9]
-CHAR [a-zA-z0-9_]
+INT {DIGIT}+
+CHAR [a-zA-Z0-9_]
 WS [ \n\t]*
-OP \+|-|\*|/|\%|<|<=|>|>=|=|==|!=|&&|\|\||!|;|,|\.
-KEY void|string|this|while|break|ReadInteger|int|class|extends|if|New|ReadLine|double|interface|implements|else|NewArray|bool|null|for|return|Print
+OP ([+]|-|[*]|[/]|<|<=|>|>=|=|==|!=|&&|[|]|!|;|,|[.]|[%])
+BOOL true|false
+KEY (void|string|this|while|break|ReadInteger|int|class|extends|if|New|ReadLine|double|interface|implements|else|NewArray|bool|null|for|return|Print)
 
 %%
-/* whitespace */
+	/* whitespace */
 {WS}
+	/* keywords */    
+{KEY} { printf("KEY: %s\n", yytext);}
 
-/* keywords */    
-{KEY} {}
+	/* boolean literals */
+{BOOL} {printf("BOOL: %s\n", yytext);}
 
-/* identifier 31 chars max */
-[a-zA-z]{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR}{CHAR} {}
+	/* parentesis */
+"("|")" {printf("%s\n", equals(yytext, ")") ? "PAREN_CLOSE" : "PAREN_OPEN"); }
 
-/* parentesis */
-"("|")" {printf("%s", equals(yytext, ")") ? "CLOSE" : "OPEN"); }
+"["|"]" {printf("%s\n", equals(yytext, "]") ? "BRACK_CLOSE" : "BRACK_OPEN");}
 
-"["|"]" {}
+"{"|"}" {printf("%s\n", equals(yytext, "}") ? "BRACE_CLOSE" : "BRACE_OPEN");}
 
-"{"|"}" {}
+	/* double literals */
+{INT}"."{DIGIT}*[eE][+-]?DIGIT+ {printf("DOUBLE: %s\n", yytext);}
 
-/* integer literals */
-{DIGIT}+|0[xX][0-9a-eA-E]+ {}
+	/* integer literals */
+{INT}|0[xX][0-9a-eA-E]+ {printf("INT: %s\n", yytext);}
 
-/* double literals */
-{DIGIT}+\.{DIGIT}*[eE][+-]?DIGIT+
+	/* string literal */
+\"[^\"\n]\" {printf("STR: %s\n", yytext); }
 
-/* string literal */
-\"[^\"\n]\"
+	/* operators */
+{OP} {printf("OP: %s\n", yytext);}
 
-/* boolean literals */
-true|false {}
-
-/* operators */
-{OP} {}
+	/* identifier 31 chars max */
+[a-zA-Z]{CHAR}*  {printf("ID: %s\n", yytext);}
 %%
 /*** C Code section ***/
 
