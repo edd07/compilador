@@ -48,6 +48,12 @@ static void DoBeforeEachAction();
 
 %}
 
+DIGIT [0-9]
+INT {DIGIT}+
+CHAR [a-zA-Z0-9_]
+WS [ \n\t]*
+BOOL true|false
+
  /* The section before the first %% is the Definitions section of the lex
   * input file. Here is where you set options for the scanner, define lex
   * states, and can set up definitions to give names to regular expressions
@@ -60,6 +66,66 @@ static void DoBeforeEachAction();
  /* All patterns and actions should be placed between the start and stop
   * %% markers which delimit the Rules section. 
   */ 
+  
+
+  
+  	/* whitespace */
+{WS}
+
+
+	/* keywords & operators */    
+	
+void {return(256);}
+int {return(257);}
+double {return(258);}
+bool {return(259);}
+string {return(260);}
+class {return(261);}
+null {return(262);}
+"<=" {return(263);}
+">=" {return(264);}
+"==" {return(265);}
+"!=" {return(266);}
+"&&" {return(267);}
+"||" {return(268);}
+while {return(269);}
+for {return(270);}
+if {return(271);}
+else {return(272);}
+return {return(273);}
+break {return(274);}
+extends {return(275);}
+this {return(276);}
+implements {return(277);}
+interface {return(278);}
+New {return(279);}
+NewArray {return(280);}
+
+	/* boolean literals */
+{BOOL} {yylval.boolConstant=strcmp(yytext,"false");return(285);}
+
+	/* parentesis */
+"(" {return('(');}
+")" {return(')');}
+"[" {return('[');}
+"]" {return(']');}
+"{" {return('{');}
+"}" {return('}');}
+
+	/* double literals */
+{INT}"."{DIGIT}*[eE][+-]?DIGIT+ {yylval.doubleConstant=atof(yytext);return(284);}
+
+	/* integer literals */
+{INT}|0[xX][0-9a-eA-E]+ {yylval.integerConstant=atoi(yytext);return(283);}
+
+	/* string literal */
+["][^"\n]*["] {yylval.stringConstant=yytext;return(282); }
+
+	/* identifier 31 chars max */
+[a-zA-Z]{CHAR}*  {strcpy(yylval.identifier,yytext);return(281);}
+
+	/* errors */
+["][^"]*\n {ReportError::UntermString(&yylloc, yytext);}
 
 %%
 /* The closing %% above marks the end of the Rules section and the beginning
