@@ -6,6 +6,7 @@
 
 #include "scanner.h"
 #include <stdio.h>
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -99,6 +100,11 @@ int add_directive() {
 
 int use_directive() {
 
+    for( map<string, string>::iterator ii=directives.begin(); ii!=directives.end(); ++ii) {
+       cout << (*ii).second;
+    }
+
+    return 0;
 }
 
 
