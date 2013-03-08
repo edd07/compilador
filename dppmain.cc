@@ -7,8 +7,9 @@
 #include "scanner.h"
 #include <stdio.h>
 #include <map>
- #include <string>
+#include <string>
 
+using namespace std;
 
 namespace global {
     // variables globales porque me hago bolas con los apuntadores :D
@@ -60,17 +61,20 @@ int multiple() {
     
 }
 
+
+
 int add_directive() {
     int ch;
     int j = 0;
-    char name[31] = 0;
-    char value[80] = 0;
+    char name[32];
+    char value[81];
 
     // se agrega el nombre de la directiva
     while (j < 31 && ((ch = getc(stdin)) >= 'A' && ch <= 'Z')) {
         name[j] = ch;
         j++;
     }
+    name[j] = '\0'; // se agrega el null para poder convertirlo a string
 
     // se verifica que este bien declarada la directiva nueva
     if (j < 31) {
@@ -80,9 +84,10 @@ int add_directive() {
                 value[j] = ch;
                 j++;
             }
+            value[j] = '\0'; // se agrega el null para poder convertirlo a string
 
             if (j < 80) {
-                directives[name] = value;
+                global::directives[name] = value;
             } else {
                 // error de longitud
             }
