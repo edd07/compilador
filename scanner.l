@@ -57,6 +57,7 @@ INT {DIGIT}+
 CHAR [a-zA-Z0-9_]
 WS [ \t]*
 BOOL true|false
+PERMITIDOS [{DIGIT}{CHAR}{WS}\(\)\{\}\[\]\|\%;\.,&!><=\t\n ]
 
  /* The section before the first %% is the Definitions section of the lex
   * input file. Here is where you set options for the scanner, define lex
@@ -130,12 +131,14 @@ NewArray {return(280);}
 ["][^"\n]*["] {yylval.stringConstant=yytext;return(282); }
 
 	/* identifier 31 chars max */
-[a-zA-Z]{CHAR}*  {strcpy(yylval.identifier,yytext);return(281);}
+[a-zA-Z]{CHAR}*  {if(strlen(yytext)>31){ReportError::LongIdentifier(&yylloc, yytext);}else{strcpy(yylval.identifier,yytext);return(281);}}
 
 	/* errors */
 ["][^"]*\n {ReportError::UntermString(&yylloc, yytext);num_linea++;ultima_col=primera_col=1;}
 
 \n {num_linea++;ultima_col=primera_col=1;}
+
+[^{PERMITIDOS}] {ReportError::UnrecogChar(&yylloc, *yytext);}
 
 %%
 /* The closing %% above marks the end of the Rules section and the beginning
