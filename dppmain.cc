@@ -16,7 +16,7 @@ using namespace std;
 
 namespace global {
     // variables globales porque me hago bolas con los apuntadores :D
-    int lines = 0;
+    int lines = 1;
     char def[8] = "define ";
     map<string, string> directives;
 
@@ -37,15 +37,20 @@ void sencillo() {
     int ch;
     // ignorar los caracteres hasta llegar al newline
     while ((ch = getc(stdin)) != '\n');
-    putc(ch, stdout);
+    if (ch == '\n') {
+        global::lines++;
+        putc(ch, stdout);
+    }
 }
 
-int multiple() {
+void multiple() {
     int prev, curr;
     while ((curr = getc(stdin)) != EOF) {
         // si se llega al newline, imprimirlo
-        if (curr == '\n')
+        if (curr == '\n') {
             putc(curr, stdout);
+            global::lines++;
+        }
         // si se llega a una diagonal se checa que el anterior haya sido un asterisco
         // si lo es entonces se cierra el comentario y se regresa a la funcion principal
         if (curr == '/')
@@ -57,15 +62,12 @@ int multiple() {
     
     // se marca error si no se cierra un comentario multiple
     if (curr == EOF)
-        return -1;
-    else
-        return 0;
-    
+        ReportError::UntermComment();    
 }
 
 
 
-int add_directive() {
+void add_directive() {
     int ch;
     int j = 0;
     char name[32];
@@ -82,21 +84,24 @@ int add_directive() {
     if (j < 31) {
         if (ch == ' ') { // si lo esta entonces agrega su valor al diccionario
             j = 0;
+            // se lee el valor de la directiva
             while (j < 80 && ((ch = getc(stdin)) != '\n')) {
                 value[j] = ch;
                 j++;
             }
             value[j] = '\0'; // se agrega el null para poder convertirlo a string
 
+            // se verifica la longitud del valor de la directiva
             if (j < 80) {
                 global::directives[name] = value;
             } else {
-                // error de longitud
+                ReportError::InvalidDirective(global::lines);
             }
             putc('\n', stdout);
+            global::lines++;
         }
-    } else {
-        // error de longitud
+    } else { // longitud invalida
+        ReportError::InvalidDirective(global::lines);
     }
 }
 
@@ -105,32 +110,35 @@ int use_directive() {
     int ch;
     char directive[32];
 
+    // se lee el nombre de la directiva
     while (j < 31 && ((ch = getc(stdin)) >= 'A' && ch <= 'Z')) {
         directive[j] = ch;
         j++;
     }
     directive[j] = '\0';
-    string directive_s(directive);
+    string directive_s(directive); // se convierte a un string
 
-    
+    // se verifica la longitud del nombre
     if (j < 31) {
-        map<string, string>::iterator ii=global::directives.begin();
-        for (ii; ii!=global::directives.end(); ++ii) {
-            if ((*ii).first.compare(directive_s) == 0) {
-                cout << (*ii).second;
-                break;
-            }
-        }
 
-        if (ii==global::directives.end()) {
-            // error de directiva no encontrada
+        map<string, string>::iterator ii=global::directives.begin();
+
+        // se busca en el diccionario la directiva
+        if (global::directives.find(directive) == global::directives.end())
+            ReportError::InvalidDirective(global::lines);
+        else
+            cout << global::directives[directive];
+        
+
+        if (ch == '\n') {
+            global::lines++;
+            putc(ch, stdout);
         }
-        putc(ch, stdout);
-    } else {
-        // error de longitud
+    } else { // longitud invalida
+        ReportError::InvalidDirective(global::lines);
     }
 
-    return 0;
+    return ch;
 }
 
 
@@ -139,10 +147,6 @@ int main(int argc, char *argv[]) {
     int ch, prev;
     int ch2 = 0;
     int i = 0;
-    int return_code = 0;
-
-    // verificacion que se conserve la diagonal como operador (este mismo archivo es el de prueba)
-    int prueba = (2/2);
 
 
     while ((ch = getc(stdin)) != EOF) {
@@ -154,14 +158,21 @@ int main(int argc, char *argv[]) {
                 sencillo();
                 prev = '\n';
             } else if (ch2 == '*') { // comentario de varias lineas
-                return_code = multiple();
+                multiple();
                 prev = '\n';
             } else { // no comentario (diagonal como operador, etc)
-                putc(ch, stdout);
-                putc(ch2, stdout);
+                if (ch == '\n') {
+                    global::lines++;
+                    putc(ch, stdout);
+                }
+
+                if (ch2 == '\n') {
+                    global::lines++;
+                    putc(ch2, stdout);
+                }
                 prev = ch2;
             }
-        } else if (ch == '#') { // gato encontrado
+        } else if (ch == '#') { // directiva encontrada (posiblemente)
             if (prev == '\n') {
                 int j = 0;
                 while (j < 7 && (ch = getc(stdin)) == global::def[j])
@@ -171,18 +182,24 @@ int main(int argc, char *argv[]) {
                     add_directive();
                 else {
                     putc('#', stdout);
-                    putc(ch, stdout); //raise_error(); // levantar alerta y deshacerse de la linea
+                    if (ch == '\n') { //raise_error(); // levantar alerta y deshacerse de la linea
+                        global::lines++;
+                        putc(ch, stdout);
+                    } 
                 }
                 prev = '\n';
             } else if (prev == ' ') { // revisar que caracteres que pueden ir antes del uso de una directiva
                 prev = use_directive();
             }
         }else { // otros caracteres pasan sin modificar
-            putc(ch, stdout);
+            if (ch == '\n') {
+                global::lines++;
+                putc(ch, stdout);
+            }
             prev = ch;
         }
 
         i++;
     }
-    return return_code;
+    return 0;
 }
