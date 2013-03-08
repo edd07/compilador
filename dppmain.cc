@@ -6,6 +6,7 @@
 
 #include "scanner.h"
 #include <stdio.h>
+#include "errors.h"
 #include <iostream>
 #include <map>
 #include <string>
@@ -15,7 +16,7 @@ using namespace std;
 
 namespace global {
     // variables globales porque me hago bolas con los apuntadores :D
-    int index = 0;
+    int lines = 0;
     char def[8] = "define ";
     map<string, string> directives;
 
@@ -100,14 +101,6 @@ int add_directive() {
 }
 
 int use_directive() {
-    /*
-    map<string, string>::iterator ii=global::directives.begin();
-    while (ii!=global::directives.end()) {
-        cout << (*ii).first << ' ' << (*ii).second;
-        ++ii;
-    }
-    */
-
     int  j = 0;
     int ch;
     char directive[32];
@@ -116,20 +109,23 @@ int use_directive() {
         directive[j] = ch;
         j++;
     }
+    directive[j] = '\0';
+    string directive_s(directive);
 
+    
     if (j < 31) {
         map<string, string>::iterator ii=global::directives.begin();
-        while (ii!=global::directives.end()) {
-            if ((*ii).second.compare(directive) == 0) {
+        for (ii; ii!=global::directives.end(); ++ii) {
+            if ((*ii).first.compare(directive_s) == 0) {
                 cout << (*ii).second;
                 break;
             }
-            ++ii;
         }
 
         if (ii==global::directives.end()) {
             // error de directiva no encontrada
         }
+        putc(ch, stdout);
     } else {
         // error de longitud
     }
