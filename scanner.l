@@ -117,10 +117,14 @@ NewArray {return(280);}
 "}" {return('}');}
 
 	/* double literals */
-{INT}"."{DIGIT}*[eE][+-]?DIGIT+ {yylval.doubleConstant=atof(yytext);return(284);}
+{INT}"."{DIGIT}*([eE][+-]?DIGIT+)? {yylval.doubleConstant=atof(yytext);return(284);}
+
+\+|\-|\*|\/|\%|<|>|!|;|,|\.|= {return(yytext[0]);} 
 
 	/* integer literals */
-{INT}|0[xX][0-9a-eA-E]+ {yylval.integerConstant=atoi(yytext);return(283);}
+{INT} {yylval.integerConstant=atoi(yytext);return(283);}
+	/*hex */
+0[xX][0-9a-fA-F]+ {int resp=0;for(int i=2;i<strlen(yytext);i++){resp=16*resp + (yytext[i]<58 ? yytext[i]-'0' : yytext[i]<97 ? yytext[i]-55 : yytext[i]-87);} yylval.integerConstant=resp; return(283);}
 
 	/* string literal */
 ["][^"\n]*["] {yylval.stringConstant=yytext;return(282); }
@@ -129,9 +133,9 @@ NewArray {return(280);}
 [a-zA-Z]{CHAR}*  {strcpy(yylval.identifier,yytext);return(281);}
 
 	/* errors */
-["][^"]*\n {ReportError::UntermString(&yylloc, yytext);num_linea++;}
+["][^"]*\n {ReportError::UntermString(&yylloc, yytext);num_linea++;ultima_col=primera_col=1;}
 
-\n {num_linea++;}
+\n {num_linea++;ultima_col=primera_col=1;}
 
 %%
 /* The closing %% above marks the end of the Rules section and the beginning
