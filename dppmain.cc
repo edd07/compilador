@@ -37,10 +37,10 @@ void sencillo() {
     int ch;
     // ignorar los caracteres hasta llegar al newline
     while ((ch = getc(stdin)) != '\n');
-    if (ch == '\n') {
+    if (ch == '\n')
         global::lines++;
-        putc(ch, stdout);
-    }
+    putc(ch, stdout);
+    
 }
 
 void multiple() {
@@ -95,7 +95,7 @@ void add_directive() {
             if (j < 80) {
                 global::directives[name] = value;
             } else {
-                ReportError::InvalidDirective(global::lines);
+                //ReportError::InvalidDirective(global::lines);
             }
             putc('\n', stdout);
             global::lines++;
@@ -130,10 +130,11 @@ int use_directive() {
             cout << global::directives[directive];
         
 
-        if (ch == '\n') {
+        if (ch == '\n') 
             global::lines++;
-            putc(ch, stdout);
-        }
+
+        putc(ch, stdout);
+        
     } else { // longitud invalida
         ReportError::InvalidDirective(global::lines);
     }
@@ -161,15 +162,17 @@ int main(int argc, char *argv[]) {
                 multiple();
                 prev = '\n';
             } else { // no comentario (diagonal como operador, etc)
-                if (ch == '\n') {
+                if (ch == '\n')
                     global::lines++;
-                    putc(ch, stdout);
-                }
 
-                if (ch2 == '\n') {
+                putc(ch, stdout);
+                
+
+                if (ch2 == '\n')
                     global::lines++;
-                    putc(ch2, stdout);
-                }
+
+                putc(ch2, stdout);
+                
                 prev = ch2;
             }
         } else if (ch == '#') { // directiva encontrada (posiblemente)
@@ -183,20 +186,20 @@ int main(int argc, char *argv[]) {
                     add_directive();
                 else {
                     putc('#', stdout);
-                    if (ch == '\n') { //raise_error(); // levantar alerta y deshacerse de la linea
+                    if (ch == '\n') //raise_error(); // levantar alerta y deshacerse de la linea
                         global::lines++;
-                        putc(ch, stdout);
-                    } 
+
+                    putc(ch, stdout);
                 }
                 prev = '\n';
             } else { // uso de directiva porque no esta al inicio de la linea
                 prev = use_directive();
             }
         }else { // otros caracteres pasan sin modificar
-            if (ch == '\n') {
+            if (ch == '\n')
                 global::lines++;
-                putc(ch, stdout);
-            }
+
+            putc(ch, stdout);
             prev = ch;
         }
 
