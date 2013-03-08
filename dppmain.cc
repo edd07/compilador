@@ -173,6 +173,7 @@ int main(int argc, char *argv[]) {
                 prev = ch2;
             }
         } else if (ch == '#') { // directiva encontrada (posiblemente)
+            // definicion de directiva
             if (prev == '\n') {
                 int j = 0;
                 while (j < 7 && (ch = getc(stdin)) == global::def[j])
@@ -188,7 +189,7 @@ int main(int argc, char *argv[]) {
                     } 
                 }
                 prev = '\n';
-            } else if (prev == ' ') { // revisar que caracteres que pueden ir antes del uso de una directiva
+            } else { // uso de directiva porque no esta al inicio de la linea
                 prev = use_directive();
             }
         }else { // otros caracteres pasan sin modificar
