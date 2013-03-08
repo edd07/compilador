@@ -10,11 +10,11 @@
 #include <map>
 #include <string>
 
+
 using namespace std;
 
 namespace global {
     // variables globales porque me hago bolas con los apuntadores :D
-    // dict
     int index = 0;
     char def[8] = "define ";
     map<string, string> directives;
@@ -92,6 +92,7 @@ int add_directive() {
             } else {
                 // error de longitud
             }
+            putc('\n', stdout);
         }
     } else {
         // error de longitud
@@ -99,9 +100,38 @@ int add_directive() {
 }
 
 int use_directive() {
+    /*
+    map<string, string>::iterator ii=global::directives.begin();
+    while (ii!=global::directives.end()) {
+        cout << (*ii).first << ' ' << (*ii).second;
+        ++ii;
+    }
+    */
 
-    for( map<string, string>::iterator ii=directives.begin(); ii!=directives.end(); ++ii) {
-       cout << (*ii).second;
+    int  j = 0;
+    int ch;
+    char directive[32];
+
+    while (j < 31 && ((ch = getc(stdin)) >= 'A' && ch <= 'Z')) {
+        directive[j] = ch;
+        j++;
+    }
+
+    if (j < 31) {
+        map<string, string>::iterator ii=global::directives.begin();
+        while (ii!=global::directives.end()) {
+            if ((*ii).second.compare(directive) == 0) {
+                cout << (*ii).second;
+                break;
+            }
+            ++ii;
+        }
+
+        if (ii==global::directives.end()) {
+            // error de directiva no encontrada
+        }
+    } else {
+        // error de longitud
     }
 
     return 0;
@@ -116,7 +146,7 @@ int main(int argc, char *argv[]) {
     int return_code = 0;
 
     // verificacion que se conserve la diagonal como operador (este mismo archivo es el de prueba)
-    int prueba = 2/2;
+    int prueba = (2/2);
 
 
     while ((ch = getc(stdin)) != EOF) {
@@ -138,14 +168,15 @@ int main(int argc, char *argv[]) {
         } else if (ch == '#') { // gato encontrado
             if (prev == '\n') {
                 int j = 0;
-                while (j < 7 && getc(stdin) == global::def[j])
+                while (j < 7 && (ch = getc(stdin)) == global::def[j])
                     j++;
                 
                 if (j == 7)
                     add_directive();
-                else
-                    //raise_error(); // levantar alerta y deshacerse de la linea
-
+                else {
+                    putc('#', stdout);
+                    putc(ch, stdout); //raise_error(); // levantar alerta y deshacerse de la linea
+                }
                 prev = '\n';
             } else if (prev == ' ') { // revisar que caracteres que pueden ir antes del uso de una directiva
                 prev = use_directive();
