@@ -16,6 +16,10 @@
 #include "utility.h" // for PrintDebug()
 #include "errors.h"
 
+int primera_col=1;
+int ultima_col=1;
+int num_linea=1;
+
 /* Global variable: yylval
  * -----------------------
  * This global variable is how we get attribute information about the token
@@ -51,7 +55,7 @@ static void DoBeforeEachAction();
 DIGIT [0-9]
 INT {DIGIT}+
 CHAR [a-zA-Z0-9_]
-WS [ \n\t]*
+WS [ \t]*
 BOOL true|false
 
  /* The section before the first %% is the Definitions section of the lex
@@ -125,7 +129,9 @@ NewArray {return(280);}
 [a-zA-Z]{CHAR}*  {strcpy(yylval.identifier,yytext);return(281);}
 
 	/* errors */
-["][^"]*\n {ReportError::UntermString(&yylloc, yytext);}
+["][^"]*\n {ReportError::UntermString(&yylloc, yytext);num_linea++;}
+
+\n {num_linea++;}
 
 %%
 /* The closing %% above marks the end of the Rules section and the beginning
@@ -161,4 +167,11 @@ void InitScanner()
  */
 static void DoBeforeEachAction()
 {
+
+primera_col = ultima_col;
+ultima_col += strlen(yytext);
+
+yylloc.first_line = yylloc.last_line = num_linea;
+yylloc.first_column = primera_col;
+yylloc.last_column = ultima_col-1;
 }
