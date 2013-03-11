@@ -18,7 +18,7 @@ using namespace std;
 namespace global {
     // variables globales porque me hago bolas con los apuntadores :D
     int lines = 1;
-    int unclosed_string = 1;
+    int unclosed_string = 0;
     char def[8] = "define ";
     map<string, string> directives;
 
@@ -64,7 +64,7 @@ void multiple() {
     
     // se marca error si no se cierra un comentario multiple
     if (curr == EOF) {
-        //ReportError::UntermComment();
+        ReportError::UntermComment();
     }   
 }
 
@@ -98,13 +98,13 @@ void add_directive() {
             if (j < 80) {
                 global::directives[name] = value;
             } else {
-                ////ReportError::InvalidDirective(global::lines);
+                ReportError::InvalidDirective(global::lines);
             }
             putc('\n', stdout);
             global::lines++;
         }
     } else { // longitud invalida
-        //ReportError::InvalidDirective(global::lines);
+        ReportError::InvalidDirective(global::lines);
     }
 }
 
@@ -128,7 +128,8 @@ int use_directive() {
 
         // se busca en el diccionario la directiva
         if (global::directives.find(directive) == global::directives.end()) {
-            //ReportError::InvalidDirective(global::lines);
+            ReportError::InvalidDirective(global::lines);
+            cout << '#' << directive_s;
         } else
             cout << global::directives[directive];
         
@@ -139,7 +140,7 @@ int use_directive() {
         putc(ch, stdout);
         
     } else { // longitud invalida
-        //ReportError::InvalidDirective(global::lines);
+        ReportError::InvalidDirective(global::lines);
     }
 
     return ch;
@@ -209,36 +210,52 @@ int main(int argc, char *argv[]) {
 
 
     while ((ch = getc(stdin)) != EOF) {
+        if (ch == '"')
+            global::unclosed_string = 1;
+        if (ch == '\n' || prev == '\n')
+            global::unclosed_string = 0;
+
+        
         // diagonal encontrada
         if (ch == '/') {
-            ch2 = getc(stdin);
-            // comentario de una linea
-            if (ch2 == '/') {
-                sencillo();
-                prev = '\n';
-            } else if (ch2 == '*') { // comentario de varias lineas
-                multiple();
-                prev = '\n';
-            } else { // no comentario (diagonal como operador, etc)
-                if (ch == '\n')
-                    global::lines++;
+            if (!global::unclosed_string) {
+                ch2 = getc(stdin);
+                // comentario de una linea
+                if (ch2 == '/') {
+                    sencillo();
+                    prev = '\n';
+                } else if (ch2 == '*') { // comentario de varias lineas
+                    multiple();
+                    prev = '\n';
+                } else { // no comentario (diagonal como operador, etc)
+                    if (ch == '\n')
+                        global::lines++;
 
-                putc(ch, stdout);
-                
+                    putc(ch, stdout);
+                    
 
-                if (ch2 == '\n')
-                    global::lines++;
+                    if (ch2 == '\n')
+                        global::lines++;
 
-                putc(ch2, stdout);
-                
-                prev = ch2;
+                    putc(ch2, stdout);
+                    
+                    prev = ch2;
+                }
+            } else {
+                putc('/', stdout);
+                prev = '/';
             }
         } else if (ch == '#') { // directiva encontrada (posiblemente)
-            // definicion de directiva
-            if (prev == '\n' || global::lines == 1)
-                prev = choose_directive();
-            else // uso de directiva porque no esta al inicio de la linea
-                prev = use_directive();
+            if (!global::unclosed_string) {
+                // definicion de directiva
+                if (prev == '\n' || global::lines == 1)
+                    prev = choose_directive();
+                else // uso de directiva porque no esta al inicio de la linea
+                    prev = use_directive();
+            } else {
+                putc('#', stdout);
+                prev = '#';
+            }
 
         } else { // otros caracteres pasan sin modificar
             if (ch == '\n')
