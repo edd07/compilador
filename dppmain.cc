@@ -10,6 +10,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vector>
 
 
 using namespace std;
@@ -17,6 +18,7 @@ using namespace std;
 namespace global {
     // variables globales porque me hago bolas con los apuntadores :D
     int lines = 1;
+    int unclosed_string = 0;
     char def[8] = "define ";
     map<string, string> directives;
 
@@ -61,8 +63,9 @@ void multiple() {
     }
     
     // se marca error si no se cierra un comentario multiple
-    if (curr == EOF)
-        ReportError::UntermComment();    
+    if (curr == EOF) {
+        ReportError::UntermComment();
+    }   
 }
 
 
@@ -95,7 +98,7 @@ void add_directive() {
             if (j < 80) {
                 global::directives[name] = value;
             } else {
-                //ReportError::InvalidDirective(global::lines);
+                ReportError::InvalidDirective(global::lines);
             }
             putc('\n', stdout);
             global::lines++;
@@ -124,9 +127,10 @@ int use_directive() {
         map<string, string>::iterator ii=global::directives.begin();
 
         // se busca en el diccionario la directiva
-        if (global::directives.find(directive) == global::directives.end())
+        if (global::directives.find(directive) == global::directives.end()) {
             ReportError::InvalidDirective(global::lines);
-        else
+            cout << '#' << directive_s;
+        } else
             cout << global::directives[directive];
         
 
@@ -142,6 +146,61 @@ int use_directive() {
     return ch;
 }
 
+int choose_directive() {
+    vector<char> tmp(8);
+    int j = 0;
+    int ch = 0;
+    int prev;
+    int invalid_directive = 0;
+
+    while (j < 7 && (ch = getc(stdin)) == global::def[j]) {
+        tmp[j] = ch;
+        j++;
+    }
+    tmp[j] = ch;
+
+    // putc(6, stdout);
+    // for (int tmp_i = 0; tmp_i < j+1; tmp_i++) {
+    //     putc(tmp[tmp_i], stdout);
+    // }
+    // putc(6, stdout);
+    
+    if (j == 7) {
+        add_directive();
+        prev = '\n';
+    } else {
+        for (int tmp_i = 0; tmp_i < +1; tmp_i++) { // checa si todo lo que leyo es mayuscula
+            if (!(tmp[tmp_i] >= 'A' && tmp[tmp_i] <= 'Z')) {
+                invalid_directive = 1; // si no, es una directiva invalida
+            }
+        }
+
+        // si no es #NAME entonces imprime lo que leyo
+        if (invalid_directive) {
+            // putc('X', stdout);
+            putc('#', stdout);
+            for (int tmp_i = 0; tmp_i < j+1; tmp_i++) { 
+                if (tmp[tmp_i] == '\n') 
+                    global::lines++;
+
+                putc(tmp[tmp_i], stdout);
+                prev = tmp[tmp_i];
+            }
+        } else {
+            // putc('X', stdout);
+            // putc('X', stdout);
+            for (int tmp_i = j; tmp_i >= 0; tmp_i--) {
+
+                ungetc(tmp[tmp_i], stdin);
+            }
+            prev = use_directive();
+        }
+    }
+
+    invalid_directive = 0;
+    return prev;
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -151,51 +210,54 @@ int main(int argc, char *argv[]) {
 
 
     while ((ch = getc(stdin)) != EOF) {
+        if (ch == '"')
+            global::unclosed_string = 1;
+        if (ch == '\n' || prev == '\n')
+            global::unclosed_string = 0;
+
+        
         // diagonal encontrada
         if (ch == '/') {
-            ch2 = getc(stdin);
-            // comentario de una linea
-            if (ch2 == '/') {
-                sencillo();
-                prev = '\n';
-            } else if (ch2 == '*') { // comentario de varias lineas
-                multiple();
-                prev = '\n';
-            } else { // no comentario (diagonal como operador, etc)
-                if (ch == '\n')
-                    global::lines++;
-
-                putc(ch, stdout);
-                
-
-                if (ch2 == '\n')
-                    global::lines++;
-
-                putc(ch2, stdout);
-                
-                prev = ch2;
-            }
-        } else if (ch == '#') { // directiva encontrada (posiblemente)
-            // definicion de directiva
-            if (prev == '\n') {
-                int j = 0;
-                while (j < 7 && (ch = getc(stdin)) == global::def[j])
-                    j++;
-                
-                if (j == 7)
-                    add_directive();
-                else {
-                    putc('#', stdout);
-                    if (ch == '\n') //raise_error(); // levantar alerta y deshacerse de la linea
+            if (!global::unclosed_string) {
+                ch2 = getc(stdin);
+                // comentario de una linea
+                if (ch2 == '/') {
+                    sencillo();
+                    prev = '\n';
+                } else if (ch2 == '*') { // comentario de varias lineas
+                    multiple();
+                    prev = '\n';
+                } else { // no comentario (diagonal como operador, etc)
+                    if (ch == '\n')
                         global::lines++;
 
                     putc(ch, stdout);
+                    
+
+                    if (ch2 == '\n')
+                        global::lines++;
+
+                    putc(ch2, stdout);
+                    
+                    prev = ch2;
                 }
-                prev = '\n';
-            } else { // uso de directiva porque no esta al inicio de la linea
-                prev = use_directive();
+            } else {
+                putc('/', stdout);
+                prev = '/';
             }
-        }else { // otros caracteres pasan sin modificar
+        } else if (ch == '#') { // directiva encontrada (posiblemente)
+            if (!global::unclosed_string) {
+                // definicion de directiva
+                if (prev == '\n' || global::lines == 1)
+                    prev = choose_directive();
+                else // uso de directiva porque no esta al inicio de la linea
+                    prev = use_directive();
+            } else {
+                putc('#', stdout);
+                prev = '#';
+            }
+
+        } else { // otros caracteres pasan sin modificar
             if (ch == '\n')
                 global::lines++;
 
