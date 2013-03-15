@@ -211,7 +211,7 @@ int main(int argc, char *argv[]) {
 
     while ((ch = getc(stdin)) != EOF) {
         if (ch == '"')
-            global::unclosed_string = 1;
+            global::unclosed_string = !global::unclosed_string;
         if (ch == '\n' || prev == '\n')
             global::unclosed_string = 0;
 
