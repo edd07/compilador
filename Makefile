@@ -8,16 +8,15 @@
 # Set the default target. When you make with no arguments,
 # this will be the target built.
 COMPILER = dcc
-PREPROCESSOR = dpp
-PRODUCTS = $(COMPILER) $(PREPROCESSOR)
+PRODUCTS = $(COMPILER) 
 default: $(PRODUCTS)
 
 # Set up the list of source and object files
-SRCS = errors.cc utility.cc main.cc \
+SRCS = ast.cc ast_decl.cc ast_expr.cc ast_stmt.cc ast_type.cc errors.cc utility.cc main.cc \
 	
 
 # OBJS can deal with either .cc or .c files listed in SRCS
-OBJS = lex.yy.o $(patsubst %.cc, %.o, $(filter %.cc,$(SRCS))) $(patsubst %.c, %.o, $(filter %.c, $(SRCS)))
+OBJS = y.tab.o lex.yy.o $(patsubst %.cc, %.o, $(filter %.cc,$(SRCS))) $(patsubst %.c, %.o, $(filter %.c, $(SRCS)))
 
 JUNK =  *.o lex.yy.c dpp.yy.c y.tab.c y.tab.h *.core core $(COMPILER).purify purify.log 
 
@@ -52,28 +51,25 @@ LIBS = -lc -lm -ll
 .yy.o: $*.yy.c
 	$(CC) $(CFLAGS) -c -o $@ $*.cc
 
-lex.yy.c: scanner.l 
+lex.yy.c: scanner.l  parser.y y.tab.h 
 	$(LEX) $(LEXFLAGS) scanner.l
 
+y.tab.o: y.tab.c
+	$(CC) $(CFLAGS) -c -o y.tab.o y.tab.c
+
+y.tab.h y.tab.c: parser.y
+	$(YACC) $(YACCFLAGS) parser.y
 .cc.o: $*.cc
 	$(CC) $(CFLAGS) -c -o $@ $*.cc
 
 # rules to build compiler (dcc)
 
-$(COMPILER) : $(PREPROCESSOR) $(OBJS)
+$(COMPILER) :  $(OBJS)
 	$(LD) -o $@ $(OBJS) $(LIBS)
 
 $(COMPILER).purify : $(OBJS)
 	purify -log-file=purify.log -cache-dir=/tmp/$(USER) -leaks-at-exit=no $(LD) -o $@ $(OBJS) $(LIBS)
 
-# rules to build preprocessor (dpp) j
-PREP_OBJS = dpp.yy.o dppmain.o utility.o errors.o
-
-$(PREPROCESSOR) : $(PREP_OBJS)
-	$(LD) -o $@ $(PREP_OBJS) $(LIBS)
-
-dpp.yy.c : dpp.l
-	$(LEX) -odpp.yy.c dpp.l
 
 # This target is to build small for testing (no debugging info), removes
 # all intermediate products, too
