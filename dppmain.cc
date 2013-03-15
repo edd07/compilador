@@ -84,7 +84,7 @@ void add_directive() {
     name[j] = '\0'; // se agrega el null para poder convertirlo a string
 
     // se verifica que este bien declarada la directiva nueva
-    if (j < 31) {
+    if (j < 31 && (ch >= 'A' && ch <= 'Z')) {
         if (ch == ' ') { // si lo esta entonces agrega su valor al diccionario
             j = 0;
             // se lee el valor de la directiva
@@ -103,7 +103,7 @@ void add_directive() {
             putc('\n', stdout);
             global::lines++;
         }
-    } else { // longitud invalida
+    } else { // directiva invalida
         ReportError::InvalidDirective(global::lines);
     }
 }
