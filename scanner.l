@@ -118,7 +118,7 @@ NewArray {return(280);}
 "}" {return('}');}
 
 	/* double literals */
-{INT}"."{DIGIT}*([eE][+-]?DIGIT+)? {yylval.doubleConstant=atof(yytext);return(284);}
+{INT}"."{DIGIT}*([eE][+-]?{INT})? {yylval.doubleConstant=atof(yytext);return(284);}
 
 \+|\-|\*|\/|\%|<|>|!|;|,|\.|= {return(yytext[0]);} 
 
