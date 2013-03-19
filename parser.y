@@ -46,6 +46,12 @@ void yyerror(char *msg); // standard error-handling routine
     char identifier[MaxIdentLen+1]; // +1 for terminating null
     Decl *decl;
     List<Decl*> *declList;
+    List<Variable*> *variableList;
+    List<Stmt*> *stmtList;
+    List<identifier*> *interfaceList;
+    List<Field*> *fieldList;
+    Prototype *prototype;
+    List<Prototype*> *prototypeList;
 }
 
 
@@ -81,6 +87,23 @@ void yyerror(char *msg); // standard error-handling routine
  */
 %type <declList>  DeclList 
 %type <decl>      Decl
+%type <decl> VariableDecl
+%type <declList> VariableDeclAsterisco
+%type <identifier> Variable
+%type <identifier> Type
+%type <decl> FunctionDecl
+%type <variableList> Formals
+%type <variableList> VariableList
+%type <stmtList> StmtBlock /* No se que pedo */
+%type <stmtList> StmtAsterisco
+%type <identifier> ExtendsQualifier
+%type <interfaceList> ImplementsQualifier
+%type <fieldList> FieldAsterisco
+%type <decl> Field
+%type <decl> InterfaceDecl
+%type <prototype> Prototype
+%type <prototypeList> PrototypeAsterisco
+
 
 %%
 /* Rules
@@ -107,6 +130,59 @@ DeclList  :    DeclList Decl        { ($$=$1)->Append($2); }
 
 Decl      :    T_Void               { /* pp2: replace with correct rules  */ } 
           ;
+          
+VariableDecl  :    Variable ';'     {$$ = $1;}
+
+Variable  : Type T_Identifier       {}
+
+Type      : T_Int
+          | T_Double
+          | T_String
+          | T_Bool
+          | T_Identifier
+          | Type '[' ']'
+          
+FunctionDecl : Type T_Identifier '(' Formals ')' StmtBlock
+             | T_Void T_Identifier '(' Formals ')' StmtBlock
+             
+Formals   : VariableList
+          | /* empty */
+          
+VariableList : VariableList ',' Variable
+             | Variable
+             |
+ClassDecl : T_Class T_Identifier ExtendsQualifier ImplementsQualifier '{' FieldAsterisco '}'
+
+ExtendsQualifier : T_Extends T_Identifier
+                 | /* empty */
+
+ImplementsQualifier : T_Implements InterfaceList
+                    | /* empty */
+                    
+InterfaceList : InterfaceList ',' T_Identifier
+              | T_Identifier
+              
+FieldAsterisco : FieldAsterisco Field
+               | /* empty */
+          
+Field     : VariableDecl
+          | FunctionDecl
+          
+InterfaceDecl : T_Interface T_Identifier '{' PrototypeAsterisco '}'
+
+PrototypeAsterisco : PrototypeAsterisco Prototype
+                   | /* empty */
+              
+Prototype : Type T_Identifier '(' Formals ')' ';'
+          |	T_Void T_Identifier '(' Formals ')' ';'
+          
+StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'
+
+VariableDeclAsterisco : VariableDeclAsterisco Variable
+                      | /* empty */
+                      
+StmtAsterisco : StmtAsterisco Stmt
+              | /* empty */
           
 
 
