@@ -150,7 +150,8 @@ Formals   : VariableList
           
 VariableList : VariableList ',' Variable
              | Variable
-             |
+             |  /* empty */
+
 ClassDecl : T_Class T_Identifier ExtendsQualifier ImplementsQualifier '{' FieldAsterisco '}'
 
 ExtendsQualifier : T_Extends T_Identifier
@@ -184,7 +185,78 @@ VariableDeclAsterisco : VariableDeclAsterisco Variable
 StmtAsterisco : StmtAsterisco Stmt
               | /* empty */
           
+Stmt : ';'
+     | Expr ';'
+     | IfStmt
+     | WhileStmt
+     | ForStmt
+     | BreakStmt
+     | ReturnStmt
+     | PrintStmt
+     | StmtBlock
 
+IfStmt : T_If '(' Expr ')' Stmt
+       | T_If '(' Expr ')' Stmt T_Else Stmt
+
+WhileStmt : T_While '(' Expr ')' Stmt
+
+ForStmt : T_For '(' ';' Expr ';' ')' Stmt
+        | T_For '(' Expr ';' Expr ';' ')' Stmt
+        | T_For '(' ';' Expr ';' Expr ')' Stmt
+        | T_For '(' Expr ';' Expr ';' Expr ')' Stmt
+
+ReturnStmt : T_Return ';'
+           | T_Return Expr ';'
+
+BreakStmt : T_Break ';'
+
+PrintStmt : T_Print '(' ExprList ')' ';'
+
+ExprList : ExprList ',' Expr
+         | Expr
+         | /* empty */
+
+Expr : LValue '=' Expr
+     | Constant
+     | LValue
+     | T_This
+     | Call
+     | '(' Expr ')'
+     | Expr '+' Expr
+     | Expr '-' Expr
+     | Expr '*' Expr
+     | Expr '=' Expr
+     | Expr '%' Expr
+     | '-' Expr 
+     | Expr '<' Expr 
+     | Expr T_LessEqual Expr 
+     | Expr '>' Expr 
+     | Expr T_GreaterEqual Expr 
+     | Expr T_Equal Expr 
+     | Expr T_NotEqual Expr 
+     | Expr T_And Expr 
+     | Expr T_Or Expr 
+     | '!' Expr 
+     | T_ReadInteger '(' ')' 
+     | T_ReadLine '(' ')' 
+     | T_New '(' T_Identifier ')' 
+     | T_NewArray '(' Expr ',' Type ')'
+
+LValue : T_Identifier
+       | Expr '.' T_Identifier
+       | Expr '[' Expr ']'
+
+Call : T_Identifier '(' Actuals ')'
+     | Expr '.' T_Identifier '(' Actuals ')'
+
+Actuals : ExprList
+        | /* empty */
+
+Constant : T_IntConstant
+         | T_DoubleConstant
+         | T_BoolConstant
+         | T_StringConstant
+         | T_Null
 
 %%
 
