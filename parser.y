@@ -110,7 +110,7 @@ void yyerror(char *msg); // standard error-handling routine
  * -----
  * All productions and actions should be placed between the start and stop
  * %% markers which delimit the Rules section.
-	 
+   
  */
 Program   :    DeclList            { 
                                       @1; 
@@ -132,8 +132,10 @@ Decl      :    T_Void               { /* pp2: replace with correct rules  */ }
           ;
           
 VariableDecl  :    Variable ';'     {$$ = $1;}
+              ;
 
 Variable  : Type T_Identifier       {}
+          ;
 
 Type      : T_Int
           | T_Double
@@ -141,50 +143,65 @@ Type      : T_Int
           | T_Bool
           | T_Identifier
           | Type '[' ']'
-          
+          ;
+
 FunctionDecl : Type T_Identifier '(' Formals ')' StmtBlock
              | T_Void T_Identifier '(' Formals ')' StmtBlock
-             
+             ;
+
 Formals   : VariableList
           | /* empty */
-          
+          ;
+
 VariableList : VariableList ',' Variable
              | Variable
              |  /* empty */
+             ;
 
 ClassDecl : T_Class T_Identifier ExtendsQualifier ImplementsQualifier '{' FieldAsterisco '}'
+          ;
 
 ExtendsQualifier : T_Extends T_Identifier
                  | /* empty */
+                 ;
 
 ImplementsQualifier : T_Implements InterfaceList
                     | /* empty */
-                    
+                    ;
+
 InterfaceList : InterfaceList ',' T_Identifier
               | T_Identifier
-              
+              ;
+
 FieldAsterisco : FieldAsterisco Field
                | /* empty */
-          
+               ;
+
 Field     : VariableDecl
           | FunctionDecl
-          
+          ;
+
 InterfaceDecl : T_Interface T_Identifier '{' PrototypeAsterisco '}'
+              ;
 
 PrototypeAsterisco : PrototypeAsterisco Prototype
                    | /* empty */
-              
-Prototype : Type T_Identifier '(' Formals ')' ';'
-          |	T_Void T_Identifier '(' Formals ')' ';'
-          
-StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'
+                   ;
 
+Prototype : Type T_Identifier '(' Formals ')' ';'
+          | T_Void T_Identifier '(' Formals ')' ';'
+          ;
+
+StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'
+          ;
 VariableDeclAsterisco : VariableDeclAsterisco Variable
                       | /* empty */
-                      
+                      ;
+
 StmtAsterisco : StmtAsterisco Stmt
               | /* empty */
-          
+              ;
+
 Stmt : ';'
      | Expr ';'
      | IfStmt
@@ -194,27 +211,35 @@ Stmt : ';'
      | ReturnStmt
      | PrintStmt
      | StmtBlock
+     ;
 
 IfStmt : T_If '(' Expr ')' Stmt
        | T_If '(' Expr ')' Stmt T_Else Stmt
+       ;
 
 WhileStmt : T_While '(' Expr ')' Stmt
+          ;
 
 ForStmt : T_For '(' ';' Expr ';' ')' Stmt
         | T_For '(' Expr ';' Expr ';' ')' Stmt
         | T_For '(' ';' Expr ';' Expr ')' Stmt
         | T_For '(' Expr ';' Expr ';' Expr ')' Stmt
+        ;
 
 ReturnStmt : T_Return ';'
            | T_Return Expr ';'
+           ;
 
 BreakStmt : T_Break ';'
+          ;
 
 PrintStmt : T_Print '(' ExprList ')' ';'
+          ;
 
 ExprList : ExprList ',' Expr
          | Expr
          | /* empty */
+         ;
 
 Expr : LValue '=' Expr
      | Constant
@@ -241,22 +266,27 @@ Expr : LValue '=' Expr
      | T_ReadLine '(' ')' 
      | T_New '(' T_Identifier ')' 
      | T_NewArray '(' Expr ',' Type ')'
+     ;
 
 LValue : T_Identifier
        | Expr '.' T_Identifier
        | Expr '[' Expr ']'
+       ;
 
 Call : T_Identifier '(' Actuals ')'
      | Expr '.' T_Identifier '(' Actuals ')'
+     ;
 
 Actuals : ExprList
         | /* empty */
+        ;
 
 Constant : T_IntConstant
          | T_DoubleConstant
          | T_BoolConstant
          | T_StringConstant
          | T_Null
+         ;
 
 %%
 
