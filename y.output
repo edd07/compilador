@@ -1,3 +1,38 @@
+Nonterminals useless in grammar
+
+   VariableDecl
+   Variable
+   Type
+   FunctionDecl
+   Formals
+   VariableList
+   ClassDecl
+   ExtendsQualifier
+   ImplementsQualifier
+   InterfaceList
+   FieldAsterisco
+   Field
+   InterfaceDecl
+   PrototypeAsterisco
+   Prototype
+   StmtBlock
+   VariableDeclAsterisco
+   StmtAsterisco
+   Stmt
+   IfStmt
+   WhileStmt
+   ForStmt
+   ReturnStmt
+   BreakStmt
+   PrintStmt
+   ExprList
+   Expr
+   LValue
+   Call
+   Actuals
+   Constant
+
+
 Terminals unused in grammar
 
    T_Bool
@@ -33,6 +68,153 @@ Terminals unused in grammar
    T_IntConstant
    T_DoubleConstant
    T_BoolConstant
+   ';'
+   '['
+   ']'
+   '('
+   ')'
+   ','
+   '{'
+   '}'
+   '='
+   '+'
+   '-'
+   '*'
+   '%'
+   '<'
+   '>'
+   '!'
+   '.'
+
+
+Rules useless in grammar
+
+    5 VariableDecl: Variable ';'
+
+    6 Variable: Type T_Identifier
+
+    7 Type: T_Int
+    8     | T_Double
+    9     | T_String
+   10     | T_Bool
+   11     | T_Identifier
+   12     | Type '[' ']'
+
+   13 FunctionDecl: Type T_Identifier '(' Formals ')' StmtBlock
+   14             | T_Void T_Identifier '(' Formals ')' StmtBlock
+
+   15 Formals: VariableList
+   16        | /* empty */
+
+   17 VariableList: VariableList ',' Variable
+   18             | Variable
+   19             | /* empty */
+
+   20 ClassDecl: T_Class T_Identifier ExtendsQualifier ImplementsQualifier '{' FieldAsterisco '}'
+
+   21 ExtendsQualifier: T_Extends T_Identifier
+   22                 | /* empty */
+
+   23 ImplementsQualifier: T_Implements InterfaceList
+   24                    | /* empty */
+
+   25 InterfaceList: InterfaceList ',' T_Identifier
+   26              | T_Identifier
+
+   27 FieldAsterisco: FieldAsterisco Field
+   28               | /* empty */
+
+   29 Field: VariableDecl
+   30      | FunctionDecl
+
+   31 InterfaceDecl: T_Interface T_Identifier '{' PrototypeAsterisco '}'
+
+   32 PrototypeAsterisco: PrototypeAsterisco Prototype
+   33                   | /* empty */
+
+   34 Prototype: Type T_Identifier '(' Formals ')' ';'
+   35          | T_Void T_Identifier '(' Formals ')' ';'
+
+   36 StmtBlock: '{' VariableDeclAsterisco StmtAsterisco '}'
+
+   37 VariableDeclAsterisco: VariableDeclAsterisco Variable
+   38                      | /* empty */
+
+   39 StmtAsterisco: StmtAsterisco Stmt
+   40              | /* empty */
+
+   41 Stmt: ';'
+   42     | Expr ';'
+   43     | IfStmt
+   44     | WhileStmt
+   45     | ForStmt
+   46     | BreakStmt
+   47     | ReturnStmt
+   48     | PrintStmt
+   49     | StmtBlock
+
+   50 IfStmt: T_If '(' Expr ')' Stmt
+   51       | T_If '(' Expr ')' Stmt T_Else Stmt
+
+   52 WhileStmt: T_While '(' Expr ')' Stmt
+
+   53 ForStmt: T_For '(' ';' Expr ';' ')' Stmt
+   54        | T_For '(' Expr ';' Expr ';' ')' Stmt
+   55        | T_For '(' ';' Expr ';' Expr ')' Stmt
+   56        | T_For '(' Expr ';' Expr ';' Expr ')' Stmt
+
+   57 ReturnStmt: T_Return ';'
+   58           | T_Return Expr ';'
+
+   59 BreakStmt: T_Break ';'
+
+   60 PrintStmt: T_Print '(' ExprList ')' ';'
+
+   61 ExprList: ExprList ',' Expr
+   62         | Expr
+   63         | /* empty */
+
+   64 Expr: LValue '=' Expr
+   65     | Constant
+   66     | LValue
+   67     | T_This
+   68     | Call
+   69     | '(' Expr ')'
+   70     | Expr '+' Expr
+   71     | Expr '-' Expr
+   72     | Expr '*' Expr
+   73     | Expr '=' Expr
+   74     | Expr '%' Expr
+   75     | '-' Expr
+   76     | Expr '<' Expr
+   77     | Expr T_LessEqual Expr
+   78     | Expr '>' Expr
+   79     | Expr T_GreaterEqual Expr
+   80     | Expr T_Equal Expr
+   81     | Expr T_NotEqual Expr
+   82     | Expr T_And Expr
+   83     | Expr T_Or Expr
+   84     | '!' Expr
+   85     | T_ReadInteger '(' ')'
+   86     | T_ReadLine '(' ')'
+   87     | T_New '(' T_Identifier ')'
+   88     | T_NewArray '(' Expr ',' Type ')'
+
+   89 LValue: T_Identifier
+   90       | Expr '.' T_Identifier
+   91       | Expr '[' Expr ']'
+
+   92 Call: T_Identifier '(' Actuals ')'
+   93     | Expr '.' T_Identifier '(' Actuals ')'
+
+   94 Actuals: ExprList
+   95        | /* empty */
+
+   96 Constant: T_IntConstant
+   97         | T_DoubleConstant
+   98         | T_BoolConstant
+   99         | T_StringConstant
+  100         | T_Null
 
 
 Grammar
@@ -50,6 +232,23 @@ Grammar
 Terminals, with rules where they appear
 
 $end (0) 0
+'!' (33)
+'%' (37)
+'(' (40)
+')' (41)
+'*' (42)
+'+' (43)
+',' (44)
+'-' (45)
+'.' (46)
+';' (59)
+'<' (60)
+'=' (61)
+'>' (62)
+'[' (91)
+']' (93)
+'{' (123)
+'}' (125)
 error (256)
 T_Void (258) 4
 T_Bool (259)
@@ -89,13 +288,13 @@ T_BoolConstant (291)
 
 Nonterminals, with rules where they appear
 
-$accept (37)
+$accept (54)
     on left: 0
-Program (38)
+Program (55)
     on left: 1, on right: 0
-DeclList (39)
+DeclList (56)
     on left: 2 3, on right: 1 2
-Decl (40)
+Decl (57)
     on left: 4, on right: 2 3
 
 

@@ -46,12 +46,12 @@ void yyerror(char *msg); // standard error-handling routine
     char identifier[MaxIdentLen+1]; // +1 for terminating null
     Decl *decl;
     List<Decl*> *declList;
-    List<Variable*> *variableList;
+    List<identifier*> *variableList;
     List<Stmt*> *stmtList;
     List<identifier*> *interfaceList;
-    List<Field*> *fieldList;
-    Prototype *prototype;
-    List<Prototype*> *prototypeList;
+    List<FieldAccess*> *fieldList;
+    FnDecl *prototype;
+    List<FnDecl*> *prototypeList;
 }
 
 
@@ -87,9 +87,12 @@ void yyerror(char *msg); // standard error-handling routine
  */
 %type <declList>  DeclList 
 %type <decl>      Decl
+%type <prototype> Prototype
+%type <prototypeList> PrototypeAsterisco
+%type <decl> Field
+%type <identifier> Variable
 %type <decl> VariableDecl
 %type <declList> VariableDeclAsterisco
-%type <identifier> Variable
 %type <identifier> Type
 %type <decl> FunctionDecl
 %type <variableList> Formals
@@ -99,10 +102,8 @@ void yyerror(char *msg); // standard error-handling routine
 %type <identifier> ExtendsQualifier
 %type <interfaceList> ImplementsQualifier
 %type <fieldList> FieldAsterisco
-%type <decl> Field
 %type <decl> InterfaceDecl
-%type <prototype> Prototype
-%type <prototypeList> PrototypeAsterisco
+
 
 
 %%

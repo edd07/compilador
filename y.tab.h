@@ -126,11 +126,17 @@ typedef union YYSTYPE
     char identifier[MaxIdentLen+1]; // +1 for terminating null
     Decl *decl;
     List<Decl*> *declList;
+    List<identifier*> *variableList;
+    List<Stmt*> *stmtList;
+    List<identifier*> *interfaceList;
+    List<FieldAccess*> *fieldList;
+    FnDecl *prototype;
+    List<FnDecl*> *prototypeList;
 
 
 
 /* Line 2068 of yacc.c  */
-#line 134 "y.tab.h"
+#line 140 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
