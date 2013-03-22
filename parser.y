@@ -129,7 +129,10 @@ DeclList  :    DeclList Decl        { ($$=$1)->Append($2); }
           |    Decl                 { ($$ = new List<Decl*>)->Append($1); }
           ;
 
-Decl      :    T_Void               { /* pp2: replace with correct rules  */ } 
+Decl      : VariableDecl               { /* pp2: replace with correct rules  */ } 
+          | FunctionDecl
+          | ClassDecl
+          | InterfaceDecl
           ;
           
 VariableDecl  :    Variable ';'     {$$ = $1;}
