@@ -126,9 +126,9 @@ typedef union YYSTYPE
     char identifier[MaxIdentLen+1]; // +1 for terminating null
     Decl *decl;
     List<Decl*> *declList;
-    List<identifier*> *variableList;
+    List<VarDecl*> *variableList;
     List<Stmt*> *stmtList;
-    List<identifier*> *interfaceList;
+    List<InterfaceDecl*> *interfaceList;
     List<FieldAccess*> *fieldList;
     FnDecl *prototype;
     List<FnDecl*> *prototypeList;
