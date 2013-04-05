@@ -45,6 +45,7 @@ void yyerror(char *msg); // standard error-handling routine
     double doubleConstant;
     char identifier[MaxIdentLen+1]; // +1 for terminating null
     Decl *decl;
+    VarDecl *variableDecl;
     List<Decl*> *declList;
     List<VarDecl*> *variableList;
     List<Stmt*> *stmtList;
@@ -93,8 +94,8 @@ void yyerror(char *msg); // standard error-handling routine
 %type <prototype> Prototype
 %type <prototypeList> PrototypeAsterisco
 %type <decl> Field
-%type <identifier> Variable
-%type <decl> VariableDecl
+%type <variableDecl> Variable
+%type <variableDecl> VariableDecl
 %type <declList> VariableDeclAsterisco
 %type <identifier> Type
 %type <decl> FunctionDecl
@@ -106,7 +107,6 @@ void yyerror(char *msg); // standard error-handling routine
 %type <interfaceList> ImplementsQualifier
 %type <fieldList> FieldAsterisco
 %type <decl> InterfaceDecl
-
 %type <expr> Expr
 %type <expr> ArithmeticExpr
 %type <expr> BooleanExpr
@@ -124,6 +124,28 @@ void yyerror(char *msg); // standard error-handling routine
 %type <operator> RelOp
 %type <operator> EqOp
 
+%nonassoc T_Else
+
+%right '='
+%left T_Or
+%left T_And
+%left T_Equal
+%left T_NotEqual
+%left '<'
+%left T_LessEqual
+%left '>'
+%left '>'
+%left T_GreaterEqual
+%left '-'
+%left '+'
+%left '/'
+%left '%'
+%left '*'
+%right '!'
+%left '.'
+%left '['
+%left ']'
+%left T_Dims
 
 %%
 /* Rules
@@ -148,120 +170,122 @@ DeclList  :    DeclList Decl        { ($$=$1)->Append($2); }
           |    Decl                 { ($$ = new List<Decl*>)->Append($1); }
           ;
 
-Decl      : VariableDecl               { /* pp2: replace with correct rules  */ } 
-          | FunctionDecl
-          | ClassDecl
-          | InterfaceDecl
+Decl      : VariableDecl		{ $$=$1; } 
+          | FunctionDecl		{ $$=$1; }		
+          | ClassDecl			{ $$=$1; }
+          | InterfaceDecl		{ $$=$1; }
           ;
           
 VariableDecl  :    Variable ';'     {$$ = $1;}
               ;
 
-Variable  : Type T_Identifier       {}
+Variable  : Type T_Identifier       {$$ = new VarDecl(new Identifier(yylloc,$2) , $1 );}
           ;
 
-Type      : T_Int
-          | T_Double
-          | T_String
-          | T_Bool
-          | T_Identifier
-          | Type '[' ']'
+Type      : T_Int			{$$ = intType;}
+          | T_Double		{$$ = doubleType;}
+          | T_String		{$$ = stringType;}
+          | T_Bool			{$$ = boolType;}
+          | T_Identifier	{$$ = new NamedType($1);}
+          | Type T_Dims		{$$ = new ArrayType(yylloc,$1);}
           ;
 
-FunctionDecl : Type T_Identifier '(' Formals ')' StmtBlock
-             | T_Void T_Identifier '(' Formals ')' StmtBlock
+FunctionDecl : Type T_Identifier '(' Formals ')' StmtBlock		{$$ = new FnDecl(new Identifier($2),$1,$4);$$.setFunctionBody($6);}
+             | T_Void T_Identifier '(' Formals ')' StmtBlock	{$$ = new FnDecl(new Identifier($2),voidType,$4);$$.setFunctionBody($6);}
              ;
 
-Formals   : VariableList
-          | /* empty */
+Formals   : VariableList	{$$=$1;}
+          | /* empty */		{$$ = new List<VarDecl*>;}
           ;
 
-VariableList : VariableList ',' Variable
-             | Variable
-             |  /* empty */
+VariableList : VariableList ',' Variable	{($$=$1)->Append($3);}
+             | Variable						{($$=new List<VarDecl*>)->Append($1);}
+             |  /* empty */					{$$=new List<VarDecl*>;}
              ;
 
-ClassDecl : T_Class T_Identifier ExtendsQualifier ImplementsQualifier '{' FieldAsterisco '}'
+/* PENDIENTE */
+ClassDecl : T_Class T_Identifier ExtendsQualifier ImplementsQualifier '{' FieldAsterisco '}'	{$$=new ClassDecl(new Identifier($2),new NamedType($3),$4,$6);}
           ;
 
-ExtendsQualifier : T_Extends T_Identifier
-                 | /* empty */
+ExtendsQualifier : T_Extends T_Identifier	{$$=$2;}
+                 | /* empty */				{$$=NULL}
                  ;
 
-ImplementsQualifier : T_Implements InterfaceList
-                    | /* empty */
+ImplementsQualifier : T_Implements InterfaceList	{($$=$1)->Append($2);}
+                    | /* empty */					{$$=new List<NamedType*>;}
                     ;
 
-InterfaceList : InterfaceList ',' T_Identifier
-              | T_Identifier
+InterfaceList : InterfaceList ',' T_Identifier		{($$=$1)->Append(new NamedType($3));}
+              | T_Identifier						{($$=new List<NamedType*>)->Append(new NamedType($1));}
               ;
 
-FieldAsterisco : FieldAsterisco Field
-               | /* empty */
+FieldAsterisco : FieldAsterisco Field	{($$=$1)->Append($2);}
+               | /* empty */			{$$=new List<Decl*>;}
                ;
 
-Field     : VariableDecl
-          | FunctionDecl
+Field     : VariableDecl	{$$=$1;}
+          | FunctionDecl	{$$=$1;}
           ;
 
-InterfaceDecl : T_Interface T_Identifier '{' PrototypeAsterisco '}'
+InterfaceDecl : T_Interface T_Identifier '{' PrototypeAsterisco '}' {$$=new InterfaceDecl(new Identifier($2),$4);}
               ;
 
-PrototypeAsterisco : PrototypeAsterisco Prototype
-                   | /* empty */
+PrototypeAsterisco : PrototypeAsterisco Prototype	{($$=$1)->Append($2);}
+                   | /* empty */					{$$=new List<FnDecl*>;}
                    ;
 
-Prototype : Type T_Identifier '(' Formals ')' ';'
-          | T_Void T_Identifier '(' Formals ')' ';'
+Prototype : Type T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifier($2),$1,$4);}
+          | T_Void T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifier($2),voidType,$4);}
           ;
 
-StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'
+StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'	{$$=new StmtBlock($1,$2);}
           ;
-VariableDeclAsterisco : VariableDeclAsterisco Variable
-                      | /* empty */
+VariableDeclAsterisco : VariableDeclAsterisco Variable 	{($$=$1)->Append($2);}
+                      | /* empty */						{$$=new List<VarDecl*>;}
                       ;
 
-StmtAsterisco : StmtAsterisco Stmt
-              | /* empty */
+StmtAsterisco : StmtAsterisco Stmt		{($$=$1)->Append($2);}
+              | /* empty */				{$$=new List<Stmt*>;}
               ;
 
-Stmt : ';'
-     | Expr ';'
-     | IfStmt
-     | WhileStmt
-     | ForStmt
-     | BreakStmt
-     | ReturnStmt
-     | PrintStmt
-     | StmtBlock
+Stmt : ';'			{$$=new EmptyExpr();}
+     | Expr ';'		{$$=$1;}
+     | IfStmt		{$$=$1;}
+     | WhileStmt	{$$=$1;}
+     | ForStmt		{$$=$1;}
+     | BreakStmt	{$$=$1;}
+     | ReturnStmt	{$$=$1;}
+     | PrintStmt	{$$=$1;}
+     | StmtBlock	{$$=$1;}
      ;
 
-IfStmt : T_If '(' Expr ')' Stmt
-       | T_If '(' Expr ')' Stmt T_Else Stmt
+IfStmt : T_If '(' Expr ')' Stmt					{$$=new IfStmt($3,$5,new EmptyExpr());}
+       | T_If '(' Expr ')' Stmt T_Else Stmt		{$$ = new IfStmt($3,$5,$7);}
        ;
 
-WhileStmt : T_While '(' Expr ')' Stmt
+WhileStmt : T_While '(' Expr ')' Stmt	{$$ = new WhileStmt($3,$5);}
           ;
 
-ForStmt : T_For '(' ';' Expr ';' ')' Stmt
-        | T_For '(' Expr ';' Expr ';' ')' Stmt
-        | T_For '(' ';' Expr ';' Expr ')' Stmt
-        | T_For '(' Expr ';' Expr ';' Expr ')' Stmt
+ForStmt : T_For '(' ExprOpcional ';' Expr ';' ExprOpcional ')' Stmt		{$$=new ForStmt($3,$5,$7,$9);}
         ;
+        
+ExprOpcional : Expr				{$$=$1;}
+             | /* empty */		{$$=new EmtyExpression();}
+             ; 	
 
-ReturnStmt : T_Return ';'
-           | T_Return Expr ';'
+ReturnStmt : T_Return ';'		{$$=new ReturnStmt(@1,new EmptyExpr());}
+           | T_Return Expr ';'	{$$=new ReturnStmt(@1,$2);}
            ;
 
-BreakStmt : T_Break ';'
+BreakStmt : T_Break ';'		{$$=new BreakStmt(@1);}
           ;
 
-PrintStmt : T_Print '(' ExprList ')' ';'
+PrintStmt : T_Print '(' ExprList ')' ';'	{$$=new PrintStmt($3);}
           ;
 
-ExprList : ExprList ',' Expr
-         | Expr
-         | /* empty */
+ExprList : ExprList ',' Expr	{($$=$1)->Append($3);}
+         | Expr					{($$=new List<Expr*>)->Append($1);}
+         | /* empty */			{$$=new List<Expr*>;}
          ;
 
 Expr : ArithmeticExpr
