@@ -245,32 +245,84 @@ ExprList : ExprList ',' Expr
          | /* empty */
          ;
 
-Expr : LValue '=' Expr
+Expr : ArithmeticExpr
+     | BooleanExpr
+     | StringExpr
+     | AssignmentExpr
      | Constant
      | LValue
      | T_This
      | Call
      | '(' Expr ')'
-     | Expr '+' Expr
-     | Expr '-' Expr
-     | Expr '*' Expr
-     | Expr '=' Expr
-     | Expr '%' Expr
-     | '-' Expr 
-     | Expr '<' Expr 
-     | Expr T_LessEqual Expr 
-     | Expr '>' Expr 
-     | Expr T_GreaterEqual Expr 
-     | Expr T_Equal Expr 
-     | Expr T_NotEqual Expr 
-     | Expr T_And Expr 
-     | Expr T_Or Expr 
-     | '!' Expr 
-     | T_ReadInteger '(' ')' 
-     | T_ReadLine '(' ')' 
      | T_New '(' T_Identifier ')' 
      | T_NewArray '(' Expr ',' Type ')'
      ;
+
+Num : T_IntConstant
+    | T_DoubleConstant
+    | T_ReadInteger '(' ')' 
+    | '(' ArithmeticExpr ')'
+    | '-' Num
+    ;
+
+Term : Num
+     | Term MultOp Num
+     ;
+
+MultOp : '*'
+       | '/'
+       ;
+
+ArithmeticExpr : Term
+               | ArithmeticExpr AddOp Term
+               ;
+
+AddOp : '+'
+      | '-'
+      ;
+
+Bool : T_BoolConstant
+     | '!' BooleanExpr
+     | '(' BooleanExpr ')'
+     ;
+
+BooleanExpr : OrExpr
+           | Bool
+           | RelationalExpr
+           | EqualityExpr
+           ;
+
+OrExpr : AndExpr T_Or AndExpr
+      | AndExpr
+      ;
+
+AndExpr : BooleanExpr T_And BooleanExpr
+       | BooleanExpr
+       ;
+
+RelationalExpr : ArithmeticExpr RelOp ArithmeticExpr
+              ;
+
+RelOp : T_LessEqual
+      | T_GreaterEqual
+      | '<'
+      | '>'
+      ; 
+
+EqualityExpr : ArithmeticExpr EqOp ArithmeticExpr
+             | BooleanExpr EqOp BooleanExpr
+             ;
+
+EqOp : T_Equal
+     | T_NotEqual
+     ;
+
+AssignmentExpr : LValue '=' Expr
+               ;
+
+StringExpr : T_String
+           | T_ReadLine '(' ')' 
+           ;
 
 LValue : T_Identifier
        | Expr '.' T_Identifier
