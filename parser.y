@@ -115,7 +115,6 @@ void yyerror(char *msg); // standard error-handling routine
 %left '<'
 %left T_LessEqual
 %left '>'
-%left '>'
 %left T_GreaterEqual
 %left '-'
 %left '+'
@@ -269,63 +268,61 @@ ExprList : ExprList ',' Expr	{($$=$1)->Append($3);}
          | /* empty */			{$$=new List<Expr*>;}
          ;
 
-Expr : ArithmeticExpr
-     | BooleanExpr
-     | StringExpr
-     | AssignmentExpr
-     | Constant
-     | LValue
-     | T_This
-     | Call
-     | '(' Expr ')'
-     | T_New '(' T_Identifier ')' 
-     | T_NewArray '(' Expr ',' Type ')'
+Expr : ArithmeticExpr	{$$=$1;}
+     | BooleanExpr		{$$=$1;}
+     | StringExpr		{$$=$1;}
+     | AssignmentExpr	{$$=$1;}
+     | Constant			{$$=$1;}
+     | LValue			{$$=$1;}
+     | T_This			{$$=$1;}
+     | Call				{$$=$1;}
+     | '(' Expr ')'		{$$=$1;}
+     | T_New '(' T_Identifier ')'			{$$=$1;} 
+     | T_NewArray '(' Expr ',' Type ')'		{$$=$1;}
      ;
 
-Num : T_IntConstant
-    | T_DoubleConstant
-    | T_ReadInteger '(' ')' 
-    | '(' ArithmeticExpr ')'
-    | '-' Num
+Num : T_IntConstant				{$$=new IntConstant(@1,$1);}
+    | T_DoubleConstant			{$$=new DoubleConstant(@1,$1);}
+    | T_ReadInteger '(' ')'		{$$=new ReadIntegerExpr(@1);}
+    | '-' Num					{$$=new ArithmeticExpr($1,$2);}
     ;
 
-Term : Num
-     | Term MultOp Num
+Term : Num						{$$=$1;}
+     | Term MultOp Num			{$$=ArithmeticExpr($1,$2,$3);}
      ;
 
-MultOp : '*'
-       | '/'
+MultOp : '*'	{$$= new Operator(@1,$1);}
+       | '/'	{$$= new Operator(@1,$1);}
        ;
 
-ArithmeticExpr : Term
-               | ArithmeticExpr AddOp Term
+ArithmeticExpr : Term							{$$=$1;}
+               | ArithmeticExpr AddOp Term		{$$=ArithmeticExpr($1,$2,$3);}
                ;
 
-AddOp : '+'
-      | '-'
+AddOp : '+'	{$$= new Operator(@1,$1);}
+      | '-'	{$$= new Operator(@1,$1);}
       ;
 
-Bool : T_BoolConstant
-     | '!' BooleanExpr
-     | '(' BooleanExpr ')'
+Bool : T_BoolConstant	{$$=BoolConstant(@1,$1);}
+     | '!' BooleanExpr	{$$=LogicalExpr($1,$2);}
      ;
 
-BooleanExpr : OrExpr
-           | Bool
-           | RelationalExpr
-           | EqualityExpr
-           ;
+BooleanExpr : OrExpr			{$$=$1;}
+           	| Bool				{$$=$1;}
+           	| RelationalExpr	{$$=$1;}
+           	| EqualityExpr		{$$=$1;}
+           	;
 
-OrExpr : AndExpr T_Or AndExpr
-      | AndExpr
+OrExpr : AndExpr T_Or AndExpr	{$$=new LogicalExpr($1,$2,$3);}
+      | AndExpr					{$$=$1;}
       ;
 
-AndExpr : BooleanExpr T_And BooleanExpr
-       | BooleanExpr
+AndExpr : BooleanExpr T_And BooleanExpr	{$$=new LogicalExpr($1,$2,$3);}
+       | BooleanExpr					{$$=$1;}
        ;
 
-RelationalExpr : ArithmeticExpr RelOp ArithmeticExpr
-              ;
+RelationalExpr : ArithmeticExpr RelOp ArithmeticExpr	{$$=new RelationalExpr($1,$2,$3);}
+               ;
 
 RelOp : T_LessEqual
       | T_GreaterEqual
@@ -333,39 +330,39 @@ RelOp : T_LessEqual
       | '>'
       ; 
 
-EqualityExpr : ArithmeticExpr EqOp ArithmeticExpr
-             | BooleanExpr EqOp BooleanExpr
+EqualityExpr : ArithmeticExpr EqOp ArithmeticExpr	{$$=new EqualitylExpr($1,$2,$3);}
+             | BooleanExpr EqOp BooleanExpr			{$$=new EqualitylExpr($1,$2,$3);}
              ;
 
-EqOp : T_Equal
-     | T_NotEqual
+EqOp : T_Equal		{$$= new Operator(@1,$1);}
+     | T_NotEqual	{$$= new Operator(@1,$1);}
      ;
 
-AssignmentExpr : LValue '=' Expr
+AssignmentExpr : LValue '=' Expr	{$$=new AssignExpr($1,$2,$3);}
                ;
 
-StringExpr : T_String
-           | T_ReadLine '(' ')' 
+StringExpr : T_String				{$$=new StringConstant(@1,$1);}
+           | T_ReadLine '(' ')'		{$$=new ReadLineExpr(@1);}
            ;
 
-LValue : T_Identifier
-       | Expr '.' T_Identifier
-       | Expr '[' Expr ']'
+LValue : T_Identifier			{$$=new Identifier(@1,$1);}
+       | Expr '.' T_Identifier	{$$=new FieldAccess($1,$3);}
+       | Expr '[' Expr ']'		{$$=new ArrayAccess(@1,$1,$3);}
        ;
 
-Call : T_Identifier '(' Actuals ')'
-     | Expr '.' T_Identifier '(' Actuals ')'
+Call : T_Identifier '(' Actuals ')'				{$$=new Call(@1,NULL,$1,$3);}
+     | Expr '.' T_Identifier '(' Actuals ')'	{$$=new Call(@1,$1,$3,$5);}
      ;
 
-Actuals : ExprList
-        | /* empty */
+Actuals : ExprList		{$$=$1;}
+        | /* empty */	{$$=new List<Expr*>;}
         ;
 
-Constant : T_IntConstant
-         | T_DoubleConstant
-         | T_BoolConstant
-         | T_StringConstant
-         | T_Null
+Constant : T_IntConstant		{$$=new IntConstant(@1,$1);}
+         | T_DoubleConstant		{$$=new DoubleConstant(@1,$1);}
+         | T_BoolConstant		{$$=new BoolConstant(@1,$1);}
+         | T_StringConstant		{$$=new StringConstant(@1,$1);}
+         | T_Null				{$$=new NullConstant(@1,$1);}
          ;
 
 %%
