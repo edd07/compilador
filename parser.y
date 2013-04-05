@@ -53,6 +53,9 @@ void yyerror(char *msg); // standard error-handling routine
     List<FieldAccess*> *fieldList;
     FnDecl *prototype;
     List<FnDecl*> *prototypeList;
+
+    Expr *expr;
+    Operator *operator;
 }
 
 
@@ -104,6 +107,22 @@ void yyerror(char *msg); // standard error-handling routine
 %type <interfaceList> ImplementsQualifier
 %type <fieldList> FieldAsterisco
 %type <decl> InterfaceDecl
+%type <expr> Expr
+%type <expr> ArithmeticExpr
+%type <expr> BooleanExpr
+%type <expr> OrExpr
+%type <expr> AndExpr
+%type <expr> RelationalExpr
+%type <expr> EqualityExpr
+%type <expr> AssignmentExpr
+%type <expr> StringExpr
+%type <expr> Num
+%type <expr> Term
+%type <expr> Bool
+%type <operator> MultOp
+%type <operator> AddOp
+%type <operator> RelOp
+%type <operator> EqOp
 
 %nonassoc T_Else
 
