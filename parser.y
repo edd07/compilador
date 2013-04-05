@@ -48,11 +48,12 @@ void yyerror(char *msg); // standard error-handling routine
     VarDecl *variableDecl;
     List<Decl*> *declList;
     List<VarDecl*> *variableList;
-    List<Stmt*> *stmtList;
+    Stmt *stmt;
     List<InterfaceDecl*> *interfaceList;
     List<FieldAccess*> *fieldList;
     FnDecl *prototype;
     List<FnDecl*> *prototypeList;
+    List<Expr*> *exprList;
 
     Expr *expr;
     Operator *operator;
@@ -96,17 +97,19 @@ void yyerror(char *msg); // standard error-handling routine
 %type <decl> Field
 %type <variableDecl> Variable
 %type <variableDecl> VariableDecl
-%type <declList> VariableDeclAsterisco
+%type <variableList> VariableDeclAsterisco
 %type <identifier> Type
 %type <decl> FunctionDecl
 %type <variableList> Formals
 %type <variableList> VariableList
-%type <stmtList> StmtBlock /* No se que pedo */
-%type <stmtList> StmtAsterisco
+%type <stmt> StmtAsterisco
 %type <identifier> ExtendsQualifier
 %type <interfaceList> ImplementsQualifier
 %type <fieldList> FieldAsterisco
 %type <decl> InterfaceDecl
+%type <interfaceList> InterfaceList
+%type <decl> ClassDecl
+
 %type <expr> Expr
 %type <expr> ArithmeticExpr
 %type <expr> BooleanExpr
@@ -123,6 +126,22 @@ void yyerror(char *msg); // standard error-handling routine
 %type <operator> AddOp
 %type <operator> RelOp
 %type <operator> EqOp
+%type <expr> Constant
+%type <expr> Call
+%type <expr> LValue
+%type <exprList> Actuals
+%type <exprList> ExprList
+%type <expr> ExprOpcional
+
+%type <stmt> Stmt
+%type <stmt> StmtBlock
+%type <stmt> IfStmt
+%type <stmt> WhileStmt
+%type <stmt> ForStmt
+%type <stmt> ReturnStmt
+%type <stmt> BreakStmt
+%type <stmt> PrintStmt
+
 
 %nonassoc T_Else
 
@@ -210,7 +229,7 @@ ExtendsQualifier : T_Extends T_Identifier	{$$=$2;}
                  | /* empty */				{$$=NULL}
                  ;
 
-ImplementsQualifier : T_Implements InterfaceList	{($$=$1)->Append($2);}
+ImplementsQualifier : T_Implements InterfaceList	{$$=$2;}
                     | /* empty */					{$$=new List<NamedType*>;}
                     ;
 
@@ -237,7 +256,7 @@ Prototype : Type T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifi
           | T_Void T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifier($2),voidType,$4);}
           ;
 
-StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'	{$$=new StmtBlock($1,$2);}
+StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'	{$$=new StmtBlock($2,$3);}
           ;
 VariableDeclAsterisco : VariableDeclAsterisco Variable 	{($$=$1)->Append($2);}
                       | /* empty */						{$$=new List<VarDecl*>;}
@@ -293,7 +312,7 @@ Expr : ArithmeticExpr	{$$=$1;}
      | AssignmentExpr	{$$=$1;}
      | Constant			{$$=$1;}
      | LValue			{$$=$1;}
-     | T_This			{$$=$1;}
+     | T_This			{$$=new This(@1);}
      | Call				{$$=$1;}
      | '(' Expr ')'		{$$=$1;}
      | T_New '(' T_Identifier ')'			{$$=$1;} 
