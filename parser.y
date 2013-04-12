@@ -192,14 +192,18 @@ void yyerror(char *msg); // standard error-handling routine
 
 /* Precedencia */
 %right '='
-%left '[' T_Dims ']' '.'
-%left UMINUS
-%right '!'
-%left '*' '/' '%'
-%left '+' '-'
-%left T_And
 %left T_Or
-%left T_Equal T_NotEqual '<' T_LessEqual '>' T_GreaterEqual
+%left T_And
+%left T_Equal T_NotEqual
+%left '<' T_LessEqual '>' T_GreaterEqual
+%left '+' '-'
+%left '*' '/' '%'
+%right '!'
+%left UMINUS
+%left '[' T_Dims ']' '.'
+
+
+
 
 %%
 /* Rules
