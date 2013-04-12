@@ -260,6 +260,7 @@ FunctionDecl : Type T_Identifier '(' Formals ')' StmtBlock		{$$ =new FnDecl(new 
              ;
 
 Formals   : VariableList	{$$=$1;}
+          | /* empty */     {$$=new List<VarDecl*>;}
           ;
 
 VariableList : VariableList ',' Variable	{($$=$1)->Append($3);}
@@ -291,17 +292,17 @@ Field     : VariableDecl	{$$=$1;}
           ;
 
 InterfaceDecl : T_Interface T_Identifier '{' PrototypeAsterisco '}' {$$=new InterfaceDecl(new Identifier(@2,$2),$4);}
-              | T_Interface T_Identifier '{' '}' {$$=new InterfaceDecl(new Identifier(@2,$2),new List<Decl*>);}
+              | T_Interface T_Identifier '{' '}'                    {$$=new InterfaceDecl(new Identifier(@2,$2),new List<Decl*>);}
               ;
 
-PrototypeAsterisco : PrototypeAsterisco Prototype	{($$=$1)->Append($2);}
-                   | Prototype					{$$=new List<Decl*>;}
+PrototypeAsterisco : PrototypeAsterisco Prototype   {($$=$1)->Append($2);}
+                   | Prototype                      {($$=new List<Decl*>)->Append($1);}
                    ;
 
 Prototype : Type T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifier(@2,$2),$1,$4);}
           | T_Void T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifier(@2,$2),Type::voidType,$4);}
-          | Type T_Identifier '(' ')' ';'		{$$ = new FnDecl(new Identifier(@2,$2),$1,new List<VarDecl*>);}
-          | T_Void T_Identifier '(' ')' ';'		{$$ = new FnDecl(new Identifier(@2,$2),Type::voidType,new List<VarDecl*>);}          
+//          | Type T_Identifier '(' ')' ';'               {$$ = new FnDecl(new Identifier(@2,$2),$1,new List<VarDecl*>);}
+//          | T_Void T_Identifier '(' ')' ';'             {$$ = new FnDecl(new Identifier(@2,$2),Type::voidType,new List<VarDecl*>);}
           ;
 
 StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'	{$$=new StmtBlock($2,$3);}

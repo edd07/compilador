@@ -84,5 +84,5 @@ void ReportError::UnrecogChar(yyltype *loc, char ch) {
  * message.
  */
 void yyerror(char *msg) {
-    ReportError::Formatted(&yylloc, "%s", msg);
+    ReportError::Formatted(&yylloc, "%s", "parse error");
 }
