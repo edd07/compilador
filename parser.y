@@ -191,7 +191,7 @@ void yyerror(char *msg); // standard error-handling routine
 %nonassoc T_Else
 
 /* Precedencia */
-
+%right '='
 %left '[' T_Dims ']' '.'
 %left UMINUS
 %right '!'
@@ -201,7 +201,6 @@ void yyerror(char *msg); // standard error-handling routine
 %left T_Equal T_NotEqual
 %left T_And
 %left T_Or
-%right '='
 
 %%
 /* Rules
@@ -370,8 +369,8 @@ Expr : LValue '=' Expr                  {$$=new AssignExpr($1,new Operator(@2,"=
      | Expr '>' Expr                    {$$= new RelationalExpr($1,new Operator(@2,">"),$3);}
      | Expr T_LessEqual Expr            {$$= new RelationalExpr($1,new Operator(@2,"<="),$3);}
      | Expr T_GreaterEqual Expr         {$$= new RelationalExpr($1,new Operator(@2,">="),$3);}
-     | Expr T_Equal Expr                {$$= new RelationalExpr($1,new Operator(@2,"=="),$3);}
-     | Expr T_NotEqual Expr             {$$= new RelationalExpr($1,new Operator(@2,"!="),$3);}
+     | Expr T_Equal Expr                {$$= new EqualityExpr($1,new Operator(@2,"=="),$3);}
+     | Expr T_NotEqual Expr             {$$= new EqualityExpr($1,new Operator(@2,"!="),$3);}
      | Expr T_And Expr                  {$$=new LogicalExpr($1,new Operator(@2,"&&"),$3);}
      | Expr T_Or Expr                   {$$=new LogicalExpr($1,new Operator(@2,"||"),$3);}
      | '!' Expr                         {$$=new LogicalExpr(new Operator(@1,"!"),$2);}
