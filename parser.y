@@ -61,8 +61,9 @@ void yyerror(char *msg); // standard error-handling routine
     Expr *expr;
     Operator *op;
     Type *type;
-    char *token;
+    int *token;
     LValue *lvalue;
+    NamedType *namedtype;
 }
 
 
@@ -106,6 +107,10 @@ void yyerror(char *msg); // standard error-handling routine
 %token T_Identifier T_StringConstant  T_IntConstant  T_DoubleConstant  T_BoolConstant
 %token T_And T_Or T_Equal T_NotEqual T_LessEqual T_GreaterEqual
 %token '+' '-' '*' '/' '!' '=' '>' '<'
+%token BOGUS
+%token BOGUS2
+%token BOGUS3
+%token BOGUS4
 
 /* Non-terminal types
  * ------------------
@@ -131,7 +136,7 @@ void yyerror(char *msg); // standard error-handling routine
 %type <variableList> Formals
 %type <variableList> VariableList
 %type <stmtlist> StmtAsterisco
-%type <identifierclass> ExtendsQualifier
+%type <namedtype> ExtendsQualifier
 %type <namedtypelist> ImplementsQualifier
 %type <fieldList> FieldAsterisco
 %type <decl> InterfaceDecl
@@ -139,25 +144,28 @@ void yyerror(char *msg); // standard error-handling routine
 %type <decl> ClassDecl
 //%type <identifier> Identifier
 
-%type <token> T_Identifier
+%type <identifier> T_Identifier
 %type <integerConstant> T_IntConstant
 %type <doubleConstant> T_DoubleConstant
 %type <boolConstant> T_BoolConstant
 %type <stringConstant> T_StringConstant
+
+/*
 %type <token> T_And
 %type <token> T_Or
 %type <token> T_Equal
 %type <token> T_NotEqual
 %type <token> T_LessEqual
 %type <token> T_GreaterEqual
-%type   <token> '+'
-%type   <token> '-'
-%type   <token> '*'
-%type   <token> '/'
-%type   <token> '!'
-%type   <token> '='
-%type   <token> '>'
-%type   <token> '<'
+%type <token> '+'
+%type <token> '-'
+%type <token> '*'
+%type <token> '/'
+%type <token> '!'
+%type <token> '='
+%type <token> '>'
+%type <token> '<'
+*/
 
 
 %type <expr> Expr
@@ -224,7 +232,7 @@ void yyerror(char *msg); // standard error-handling routine
    
  */
 Program   :    DeclList            { 
-                                      @1; 
+                                      //@1; 
                                       /* pp2: The @1 is needed to convince 
                                        * yacc to set up yylloc. You can remove 
                                        * it once you have other uses of @n*/
@@ -255,7 +263,8 @@ Type      : T_Int			{$$ = Type::intType;}
           | T_Double		{$$ = Type::doubleType;}
           | T_StringConstant		{$$ = Type::stringType;}
           | T_Bool			{$$ = Type::boolType;}
-          | T_Identifier	    {$$ = new NamedType(new Identifier(@1,$1));}
+          | T_Identifier	{$$ = new NamedType(new Identifier(@1,$1));}
+          | T_Identifier BOGUS
           | Type T_Dims		{$$ = new ArrayType(yylloc,$1);}
           ;
 
@@ -264,18 +273,17 @@ FunctionDecl : Type T_Identifier '(' Formals ')' StmtBlock		{$$ =new FnDecl(new 
              ;
 
 Formals   : VariableList	{$$=$1;}
+          |  /* empty */    {$$=new List<VarDecl*>;}
           ;
 
 VariableList : VariableList ',' Variable	{($$=$1)->Append($3);}
              | Variable						{($$=new List<VarDecl*>)->Append($1);}
-             |  /* empty */					{$$=new List<VarDecl*>;}
              ;
 
-/* PENDIENTE */
-ClassDecl : T_Class T_Identifier ExtendsQualifier ImplementsQualifier '{' FieldAsterisco '}'	{$$=new ClassDecl(new Identifier(@2,$2),new NamedType($3),$4,$6);}
+ClassDecl : T_Class T_Identifier ExtendsQualifier ImplementsQualifier '{' FieldAsterisco '}'	{$$=new ClassDecl(new Identifier(@2,$2),$3,$4,$6);}
           ;
 
-ExtendsQualifier : T_Extends T_Identifier	{$$=new Identifier(@2,$2);}
+ExtendsQualifier : T_Extends T_Identifier	{$$=new NamedType(new Identifier(@2,$2));}
                  | /* empty */				{$$=NULL;}
                  ;
 
@@ -283,11 +291,12 @@ ImplementsQualifier : T_Implements InterfaceList	{$$=$2;}
                     | /* empty */					{$$=new List<NamedType*>;}
                     ;
 
-InterfaceList : InterfaceList ',' T_Identifier		{($$=$1)->Append(new NamedType(new Identifier(@3,$3)));}
+InterfaceList : InterfaceList ',' T_Identifier  	{($$=$1)->Append(new NamedType(new Identifier(@3,$3)));}
               | T_Identifier						{($$=new List<NamedType*>)->Append(new NamedType(new Identifier(@1,$1)));}
+              | T_Identifier BOGUS2
               ;
 
-FieldAsterisco : FieldAsterisco Field	{($$=$1)->Append($2);}
+FieldAsterisco : FieldAsterisco Field 	{($$=$1)->Append($2);}
                | /* empty */			{$$=new List<Decl*>;}
                ;
 
@@ -308,16 +317,16 @@ Prototype : Type T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifi
 
 StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'	{$$=new StmtBlock($2,$3);}
           ;
+          
 VariableDeclAsterisco : VariableDeclAsterisco Variable 	{($$=$1)->Append($2);}
-                      | /* empty */						{$$=new List<VarDecl*>;}
+                      | /* empty */						    {$$=new List<VarDecl*>;}
                       ;
 
 StmtAsterisco : StmtAsterisco Stmt		{($$=$1)->Append($2);}
               | /* empty */				{$$=new List<Stmt*>;}
               ;
 
-Stmt : ';'			{$$=new EmptyExpr();}
-     | Expr ';'		{$$=$1;}
+Stmt : Expr ';'		{$$=$1;}
      | IfStmt		{$$=$1;}
      | WhileStmt	{$$=$1;}
      | ForStmt		{$$=$1;}
@@ -325,6 +334,7 @@ Stmt : ';'			{$$=new EmptyExpr();}
      | ReturnStmt	{$$=$1;}
      | PrintStmt	{$$=$1;}
      | StmtBlock	{$$=$1;}
+     | ';'			{$$=new EmptyExpr();}
      ;
 
 IfStmt : T_If '(' Expr ')' Stmt					{$$=new IfStmt($3,$5,new EmptyExpr());}
@@ -375,27 +385,31 @@ Expr : ArithmeticExpr	{$$=$1;}
 Num : T_IntConstant				{$$=new IntConstant(@1,$1);}
     | T_DoubleConstant			{$$=new DoubleConstant(@1,$1);}
     | T_ReadInteger '(' ')'		{$$=new ReadIntegerExpr(@1);}
-    | '-' Num					{$$=new ArithmeticExpr(new Operator(@1,$1),$2);}
+    | '-' Num					{$$=new ArithmeticExpr(new Operator(@1,"-"),$2);}
+    | T_Identifier              {$$=new FieldAccess(NULL,new Identifier(@1,$1));}
+    | T_Identifier BOGUS3
     ;
 
 Term : Num						{$$=$1;}
      | Term MultOp Num			{$$=new ArithmeticExpr($1,$2,$3);}
      ;
 
-MultOp : '*'	{$$=new Operator(@1,$1);}
-       | '/'	{$$=new Operator(@1,$1);}
+MultOp : '*'	{$$=new Operator(@1,"*");}
+       | '/'	{$$=new Operator(@1,"/");}
        ;
 
 ArithmeticExpr : Term							{$$=$1;}
                | ArithmeticExpr AddOp Term		{$$=new ArithmeticExpr($1,$2,$3);}
                ;
 
-AddOp : '+'	{$$=new Operator(@1,$1);}
-      | '-'	{$$=new Operator(@1,$1);}
+AddOp : '+'	{$$=new Operator(@1,"+");}
+      | '-'	{$$=new Operator(@1,"-");}
       ;
 
 Bool : T_BoolConstant	{$$=new BoolConstant(@1,$1);}
-     | '!' BooleanExpr	{$$=new LogicalExpr(new Operator(@1,$1),$2);}
+     | '!' BooleanExpr	{$$=new LogicalExpr(new Operator(@1,"!"),$2);}
+     | T_Identifier     {$$=new FieldAccess(NULL,new Identifier(@1,$1));}
+     | T_Identifier BOGUS4
      ;
 
 BooleanExpr : OrExpr			{$$=$1;}
@@ -404,31 +418,31 @@ BooleanExpr : OrExpr			{$$=$1;}
            	| EqualityExpr		{$$=$1;}
            	;
 
-OrExpr : AndExpr T_Or AndExpr	{$$=new LogicalExpr($1,new Operator(@2,$2),$3);}
+OrExpr : AndExpr T_Or AndExpr	{$$=new LogicalExpr($1,new Operator(@2,"||"),$3);}
       | AndExpr					{$$=$1;}
       ;
 
-AndExpr : BooleanExpr T_And BooleanExpr	{$$=new LogicalExpr($1,new Operator(@2,$2),$3);}
+AndExpr : BooleanExpr T_And BooleanExpr	{$$=new LogicalExpr($1,new Operator(@2,"&&"),$3);}
         | '(' BooleanExpr ')'           {$$=$2;}
         ;
 
 RelationalExpr : ArithmeticExpr RelOp ArithmeticExpr	{$$= new RelationalExpr($1,$2,$3);}
                ;
 
-RelOp : T_LessEqual      {$$=new Operator(@1,$1);}
-      | T_GreaterEqual   {$$=new Operator(@1,$1);}
-      | '<'              {$$=new Operator(@1,$1);}
-      | '>'              {$$=new Operator(@1,$1);}
+RelOp : T_LessEqual      {$$=new Operator(@1,"<=");}
+      | T_GreaterEqual   {$$=new Operator(@1,">=");}
+      | '<'              {$$=new Operator(@1,"<");}
+      | '>'              {$$=new Operator(@1,">");}
       ; 
 
 EqualityExpr : Expr EqOp Expr	{$$=new EqualityExpr($1,$2,$3);}
              ;
 
-EqOp : T_Equal		{$$=new Operator(@1,$1);}
-     | T_NotEqual	{$$=new Operator(@1,$1);}
+EqOp : T_Equal		{$$=new Operator(@1,"==");}
+     | T_NotEqual	{$$=new Operator(@1,"!=");}
      ;
 
-AssignmentExpr : LValue '=' Expr	{$$=new AssignExpr($1,new Operator(@2,$2),$3);}
+AssignmentExpr : LValue '=' Expr	{$$=new AssignExpr($1,new Operator(@2,"="),$3);}
                ;
 
 StringExpr : T_StringConstant				{$$=new StringConstant(@1,$1);}
@@ -444,7 +458,7 @@ Call : T_Identifier '(' Actuals ')'				{$$=new Call(@1,NULL,new Identifier(@1,$1
      | Expr '.' T_Identifier '(' Actuals ')'	{$$=new Call(@1,$1,new Identifier(@3,$3),$5);}
      ;
 
-Actuals : ExprList		{$$=$1;}
+Actuals : ExprListOpcional		{$$=$1;}
         ;
 
 /*
