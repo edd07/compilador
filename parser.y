@@ -192,13 +192,12 @@ void yyerror(char *msg); // standard error-handling routine
 
 /* Precedencia */
 %right '='
-%left T_Equal T_NotEqual
+%left T_Equal T_NotEqual '<' T_LessEqual '>' T_GreaterEqual
 %left '[' T_Dims ']' '.'
 %left UMINUS
 %right '!'
 %left '*' '/' '%'
 %left '+' '-'
-%left '<' T_LessEqual '>' T_GreaterEqual
 %left T_And
 %left T_Or
 
@@ -255,7 +254,6 @@ FunctionDecl : Type T_Identifier '(' Formals ')' StmtBlock		{$$ =new FnDecl(new 
              ;
 
 Formals   : VariableList	{$$=$1;}
-          |  /* empty */    {$$=new List<VarDecl*>;}
           ;
 
 VariableList : VariableList ',' Variable	{($$=$1)->Append($3);}
@@ -296,6 +294,8 @@ PrototypeAsterisco : PrototypeAsterisco Prototype	{($$=$1)->Append($2);}
 
 Prototype : Type T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifier(@2,$2),$1,$4);}
           | T_Void T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifier(@2,$2),Type::voidType,$4);}
+          | Type T_Identifier '(' ')' ';'		{$$ = new FnDecl(new Identifier(@2,$2),$1,new List<VarDecl*>);}
+          | T_Void T_Identifier '(' ')' ';'		{$$ = new FnDecl(new Identifier(@2,$2),Type::voidType,new List<VarDecl*>);}          
           ;
 
 StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'	{$$=new StmtBlock($2,$3);}
@@ -323,7 +323,7 @@ Stmt : Expr ';'		{$$=$1;}
      | ';'			{$$=new EmptyExpr();}
      ;
 
-IfStmt : T_If '(' Expr ')' Stmt					{$$=new IfStmt($3,$5,new EmptyExpr());}
+IfStmt : T_If '(' Expr ')' Stmt					{$$=new IfStmt($3,$5,NULL);}
        | T_If '(' Expr ')' Stmt T_Else Stmt		{$$ =new  IfStmt($3,$5,$7);}
        ;
 
