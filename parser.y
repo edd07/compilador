@@ -301,6 +301,7 @@ Prototype : Type T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifi
 StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'	{$$=new StmtBlock($2,$3);}
           | '{' VariableDeclAsterisco '}'               {$$=new StmtBlock($2,new List<Stmt*>);}
           | '{' StmtAsterisco '}'                       {$$=new StmtBlock(new List<VarDecl*>,$2);}
+          | '{' '}'                                     {$$=new StmtBlock(new List<VarDecl*>,new List<Stmt*>);}
           ;
           
 StmtAsterisco : StmtAsterisco Stmt		{($$=$1)->Append($2);}
