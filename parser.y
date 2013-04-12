@@ -107,10 +107,8 @@ void yyerror(char *msg); // standard error-handling routine
 %token T_Identifier T_StringConstant  T_IntConstant  T_DoubleConstant  T_BoolConstant
 %token T_And T_Or T_Equal T_NotEqual T_LessEqual T_GreaterEqual
 %token '+' '-' '*' '/' '!' '=' '>' '<'
-%token BOGUS
-%token BOGUS2
-%token BOGUS3
-%token BOGUS4
+%token UMINUS
+%token BOGUS BOGUS2 BOGUS3
 
 /* Non-terminal types
  * ------------------
@@ -169,22 +167,7 @@ void yyerror(char *msg); // standard error-handling routine
 
 
 %type <expr> Expr
-%type <expr> ArithmeticExpr
-%type <expr> BooleanExpr
-%type <expr> OrExpr
-%type <expr> AndExpr
-%type <expr> RelationalExpr
-%type <expr> EqualityExpr
-%type <expr> AssignmentExpr
-%type <expr> StringExpr
-%type <expr> Num
-%type <expr> Term
-%type <expr> Bool
-%type <op> MultOp
-%type <op> AddOp
-%type <op> RelOp
-%type <op> EqOp
-/*%type <expr> Constant*/
+%type <expr> Constant
 %type <expr> Call
 %type <lvalue> LValue
 %type <exprList> Actuals
@@ -204,25 +187,18 @@ void yyerror(char *msg); // standard error-handling routine
 
 %nonassoc T_Else
 
-%right '='
-%left T_Or
-%left T_And
-%left T_Equal
-%left T_NotEqual
-%left '<'
-%left T_LessEqual
-%left '>'
-%left T_GreaterEqual
-%left '-'
-%left '+'
-%left '/'
-%left '%'
-%left '*'
+/* Precedencia */
+
+%left '[' T_Dims ']' '.'
+%left UMINUS
 %right '!'
-%left '.'
-%left '['
-%left ']'
-%left T_Dims
+%left '*' '/' '%'
+%left '+' '-'
+%left '<' T_LessEqual '>' T_GreaterEqual
+%left T_Equal T_NotEqual
+%left T_And
+%left T_Or
+%right '='
 
 %%
 /* Rules
@@ -263,7 +239,7 @@ Type      : T_Int			{$$ = Type::intType;}
           | T_Double		{$$ = Type::doubleType;}
           | T_StringConstant		{$$ = Type::stringType;}
           | T_Bool			{$$ = Type::boolType;}
-          | T_Identifier	{$$ = new NamedType(new Identifier(@1,$1));}
+          | T_Identifier	{$$ =new NamedType(new Identifier(@1,$1));}
           | T_Identifier BOGUS
           | Type T_Dims		{$$ = new ArrayType(yylloc,$1);}
           ;
@@ -318,7 +294,7 @@ Prototype : Type T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifi
 StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'	{$$=new StmtBlock($2,$3);}
           ;
           
-VariableDeclAsterisco : VariableDeclAsterisco Variable 	{($$=$1)->Append($2);}
+VariableDeclAsterisco : VariableDeclAsterisco VariableDecl 	{($$=$1)->Append($2);}
                       | /* empty */						    {$$=new List<VarDecl*>;}
                       ;
 
@@ -368,88 +344,34 @@ ExprList : ExprList ',' Expr	{($$=$1)->Append($3);}
          | Expr					{($$=new List<Expr*>)->Append($1);}
          ;
 
-Expr : ArithmeticExpr	{$$=$1;}
-     | BooleanExpr		{$$=$1;}
-     | StringExpr		{$$=$1;}
-     | AssignmentExpr	{$$=$1;}
-/*     | Constant			{$$=$1;} */
-     | T_Null				{$$=new NullConstant(@1);}
-     | LValue			{$$=$1;}
-     | T_This			{$$=new This(@1);}
-     | Call				{$$=$1;}
-     | '(' Expr ')'		{$$=$2;}
-     | T_New '(' T_Identifier ')'			{$$=new NewExpr(@3,new NamedType(new Identifier(@3,$3)));} 
+Expr : LValue '=' Expr                  {$$=new AssignExpr($1,new Operator(@2,"="),$3);}
+     | Constant                         {$$=$1;}
+     | LValue                           {$$=$1;}
+     | T_This                           {$$=new This(@1);}
+     | Call                             {$$=$1;}
+     | '(' Expr ')'                     {$$=$2;}
+     | Expr '+' Expr                    {$$=new ArithmeticExpr($1,new Operator(@2,"+"),$3);}
+     | Expr '-' Expr                    {$$=new ArithmeticExpr($1,new Operator(@2,"-"),$3);}
+     | Expr '*' Expr                    {$$=new ArithmeticExpr($1,new Operator(@2,"*"),$3);}
+     | Expr '/' Expr                    {$$=new ArithmeticExpr($1,new Operator(@2,"/"),$3);}
+     | Expr '%' Expr                    {$$=new ArithmeticExpr($1,new Operator(@2,"%"),$3);}
+     | '-' Expr %prec UMINUS            {$$=new ArithmeticExpr(new Operator(@1,"-"),$2);}
+     | Expr '<' Expr                    {$$= new RelationalExpr($1,new Operator(@2,"<"),$3);}
+     | Expr '>' Expr                    {$$= new RelationalExpr($1,new Operator(@2,">"),$3);}
+     | Expr T_LessEqual Expr            {$$= new RelationalExpr($1,new Operator(@2,"<="),$3);}
+     | Expr T_GreaterEqual Expr         {$$= new RelationalExpr($1,new Operator(@2,">="),$3);}
+     | Expr T_Equal Expr                {$$= new RelationalExpr($1,new Operator(@2,"=="),$3);}
+     | Expr T_NotEqual Expr             {$$= new RelationalExpr($1,new Operator(@2,"!="),$3);}
+     | Expr T_And Expr                  {$$=new LogicalExpr($1,new Operator(@2,"&&"),$3);}
+     | Expr T_Or Expr                   {$$=new LogicalExpr($1,new Operator(@2,"||"),$3);}
+     | '!' Expr                         {$$=new LogicalExpr(new Operator(@1,"!"),$2);}
+     | T_ReadInteger '(' ')'            {$$=new ReadIntegerExpr(@1);}
+     | T_ReadLine '(' ')'               {$$=new ReadLineExpr(@1);}
+     | T_New '(' T_Identifier ')'       {$$=new NewExpr(@3,new NamedType(new Identifier(@3,$3)));} 
      | T_NewArray '(' Expr ',' Type ')' {$$=new NewArrayExpr(@1,$3,$5);}
-     ;
-
-Num : T_IntConstant				{$$=new IntConstant(@1,$1);}
-    | T_DoubleConstant			{$$=new DoubleConstant(@1,$1);}
-    | T_ReadInteger '(' ')'		{$$=new ReadIntegerExpr(@1);}
-    | '-' Num					{$$=new ArithmeticExpr(new Operator(@1,"-"),$2);}
-    | T_Identifier              {$$=new FieldAccess(NULL,new Identifier(@1,$1));}
-    | T_Identifier BOGUS3
-    ;
-
-Term : Num						{$$=$1;}
-     | Term MultOp Num			{$$=new ArithmeticExpr($1,$2,$3);}
-     ;
-
-MultOp : '*'	{$$=new Operator(@1,"*");}
-       | '/'	{$$=new Operator(@1,"/");}
-       ;
-
-ArithmeticExpr : Term							{$$=$1;}
-               | ArithmeticExpr AddOp Term		{$$=new ArithmeticExpr($1,$2,$3);}
-               ;
-
-AddOp : '+'	{$$=new Operator(@1,"+");}
-      | '-'	{$$=new Operator(@1,"-");}
-      ;
-
-Bool : T_BoolConstant	{$$=new BoolConstant(@1,$1);}
-     | '!' BooleanExpr	{$$=new LogicalExpr(new Operator(@1,"!"),$2);}
-     | T_Identifier     {$$=new FieldAccess(NULL,new Identifier(@1,$1));}
-     | T_Identifier BOGUS4
-     ;
-
-BooleanExpr : OrExpr			{$$=$1;}
-           	| Bool				{$$=$1;}
-           	| RelationalExpr	{$$=$1;}
-           	| EqualityExpr		{$$=$1;}
-           	;
-
-OrExpr : AndExpr T_Or AndExpr	{$$=new LogicalExpr($1,new Operator(@2,"||"),$3);}
-      | AndExpr					{$$=$1;}
-      ;
-
-AndExpr : BooleanExpr T_And BooleanExpr	{$$=new LogicalExpr($1,new Operator(@2,"&&"),$3);}
-        | '(' BooleanExpr ')'           {$$=$2;}
-        ;
-
-RelationalExpr : ArithmeticExpr RelOp ArithmeticExpr	{$$= new RelationalExpr($1,$2,$3);}
-               ;
-
-RelOp : T_LessEqual      {$$=new Operator(@1,"<=");}
-      | T_GreaterEqual   {$$=new Operator(@1,">=");}
-      | '<'              {$$=new Operator(@1,"<");}
-      | '>'              {$$=new Operator(@1,">");}
-      ; 
-
-EqualityExpr : Expr EqOp Expr	{$$=new EqualityExpr($1,$2,$3);}
-             ;
-
-EqOp : T_Equal		{$$=new Operator(@1,"==");}
-     | T_NotEqual	{$$=new Operator(@1,"!=");}
-     ;
-
-AssignmentExpr : LValue '=' Expr	{$$=new AssignExpr($1,new Operator(@2,"="),$3);}
-               ;
-
-StringExpr : T_StringConstant				{$$=new StringConstant(@1,$1);}
-           | T_ReadLine '(' ')'		{$$=new ReadLineExpr(@1);}
-           ;
 
 LValue : T_Identifier			{$$=new FieldAccess(NULL,new Identifier(@1,$1));}
+       | T_Identifier BOGUS3
        | Expr '.' T_Identifier	{$$=new FieldAccess($1,new Identifier(@3,$3));}
        | Expr '[' Expr ']'		{$$=new ArrayAccess(@1,$1,$3);}
        ;
@@ -461,14 +383,12 @@ Call : T_Identifier '(' Actuals ')'				{$$=new Call(@1,NULL,new Identifier(@1,$1
 Actuals : ExprListOpcional		{$$=$1;}
         ;
 
-/*
 Constant : T_IntConstant		{$$=new IntConstant(@1,$1);}
          | T_DoubleConstant		{$$=new DoubleConstant(@1,$1);}
          | T_BoolConstant		{$$=new BoolConstant(@1,$1);}
          | T_StringConstant		{$$=new StringConstant(@1,$1);}
          | T_Null				{$$=new NullConstant(@1);}
          ;
-*/
 
 %%
 
