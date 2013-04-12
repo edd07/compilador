@@ -16,6 +16,9 @@
  * file inclusions or C++ variable declarations/prototypes that are needed
  * by your code here.
  */
+#define YYDEBUG 1
+
+#include <stdio.h>
 #include "scanner.h" // for yylex
 #include "parser.h"
 #include "errors.h"
@@ -234,13 +237,17 @@ VariableDecl  :    Variable ';'     {$$ = $1;}
 
 Variable  : Type T_Identifier       {$$ =new VarDecl(new Identifier(@2,$2) , $1 );}
           ;
+          
+LValue : T_Identifier			{$$=new FieldAccess(NULL,new Identifier(@1,$1));}
+       | Expr '.' T_Identifier	{$$=new FieldAccess($1,new Identifier(@3,$3));}
+       | Expr '[' Expr ']'		{$$=new ArrayAccess(@1,$1,$3);}
+       ;
 
 Type      : T_Int			{$$ = Type::intType;}
           | T_Double		{$$ = Type::doubleType;}
-          | T_StringConstant		{$$ = Type::stringType;}
+          | T_String		{$$ = Type::stringType;}
           | T_Bool			{$$ = Type::boolType;}
           | T_Identifier	{$$ =new NamedType(new Identifier(@1,$1));}
-          | T_Identifier BOGUS
           | Type T_Dims		{$$ = new ArrayType(yylloc,$1);}
           ;
 
@@ -281,10 +288,11 @@ Field     : VariableDecl	{$$=$1;}
           ;
 
 InterfaceDecl : T_Interface T_Identifier '{' PrototypeAsterisco '}' {$$=new InterfaceDecl(new Identifier(@2,$2),$4);}
+              | T_Interface T_Identifier '{' '}' {$$=new InterfaceDecl(new Identifier(@2,$2),new List<Decl*>);}
               ;
 
 PrototypeAsterisco : PrototypeAsterisco Prototype	{($$=$1)->Append($2);}
-                   | /* empty */					{$$=new List<Decl*>;}
+                   | Prototype					{$$=new List<Decl*>;}
                    ;
 
 Prototype : Type T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifier(@2,$2),$1,$4);}
@@ -292,15 +300,17 @@ Prototype : Type T_Identifier '(' Formals ')' ';'		{$$ = new FnDecl(new Identifi
           ;
 
 StmtBlock : '{' VariableDeclAsterisco StmtAsterisco '}'	{$$=new StmtBlock($2,$3);}
+          | '{' VariableDeclAsterisco '}'               {$$=new StmtBlock($2,new List<Stmt*>);}
+          | '{' StmtAsterisco '}'                       {$$=new StmtBlock(new List<VarDecl*>,$2);}
           ;
           
-VariableDeclAsterisco : VariableDeclAsterisco VariableDecl 	{($$=$1)->Append($2);}
-                      | /* empty */						    {$$=new List<VarDecl*>;}
-                      ;
-
 StmtAsterisco : StmtAsterisco Stmt		{($$=$1)->Append($2);}
-              | /* empty */				{$$=new List<Stmt*>;}
+              | Stmt				    {($$=new List<Stmt*>)->Append($1);}
               ;
+          
+VariableDeclAsterisco : VariableDeclAsterisco VariableDecl 	{($$=$1)->Append($2);}                      
+                      | VariableDecl				        {($$=new List<VarDecl*>)->Append($1);}
+                      ;
 
 Stmt : Expr ';'		{$$=$1;}
      | IfStmt		{$$=$1;}
@@ -369,12 +379,6 @@ Expr : LValue '=' Expr                  {$$=new AssignExpr($1,new Operator(@2,"=
      | T_ReadLine '(' ')'               {$$=new ReadLineExpr(@1);}
      | T_New '(' T_Identifier ')'       {$$=new NewExpr(@3,new NamedType(new Identifier(@3,$3)));} 
      | T_NewArray '(' Expr ',' Type ')' {$$=new NewArrayExpr(@1,$3,$5);}
-
-LValue : T_Identifier			{$$=new FieldAccess(NULL,new Identifier(@1,$1));}
-       | T_Identifier BOGUS3
-       | Expr '.' T_Identifier	{$$=new FieldAccess($1,new Identifier(@3,$3));}
-       | Expr '[' Expr ']'		{$$=new ArrayAccess(@1,$1,$3);}
-       ;
 
 Call : T_Identifier '(' Actuals ')'				{$$=new Call(@1,NULL,new Identifier(@1,$1),$3);}
      | Expr '.' T_Identifier '(' Actuals ')'	{$$=new Call(@1,$1,new Identifier(@3,$3),$5);}
