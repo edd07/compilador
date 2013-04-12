@@ -6,3 +6,5 @@ dcc
 *.exe
 y.output
 y.tab.h
+*.outerr
+*.resultado
