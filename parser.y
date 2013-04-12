@@ -251,8 +251,8 @@ Type      : T_Int			{$$ = Type::intType;}
 
 FunctionDecl : Type T_Identifier '(' Formals ')' StmtBlock		{$$ =new FnDecl(new Identifier(@2,$2),$1,$4);$$->SetFunctionBody($6);}
              | T_Void T_Identifier '(' Formals ')' StmtBlock	{$$ =new FnDecl(new Identifier(@2,$2),Type::voidType,$4);$$->SetFunctionBody($6);}
-             | Type T_Identifier '('  ')' StmtBlock		{$$ =new FnDecl(new Identifier(@2,$2),$1,new List<VarDecl*>);$$->SetFunctionBody($6);}
-             | | T_Void T_Identifier '(' ')' StmtBlock	{$$ =new FnDecl(new Identifier(@2,$2),Type::voidType,new List<VarDecl*>);$$->SetFunctionBody($6);}
+             | Type T_Identifier '('  ')' StmtBlock		{$$ =new FnDecl(new Identifier(@2,$2),$1,new List<VarDecl*>);$$->SetFunctionBody($5);}
+             | | T_Void T_Identifier '(' ')' StmtBlock	{$$ =new FnDecl(new Identifier(@2,$2),Type::voidType,new List<VarDecl*>);$$->SetFunctionBody($5);}
              ;
 
 Formals   : VariableList	{$$=$1;}
