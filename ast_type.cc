@@ -34,7 +34,10 @@ Type::Type(const char *n) {
 NamedType::NamedType(Identifier *i) : Type(*i->GetLocation()) {
     Assert(i != NULL);
     (id=i)->SetParent(this);
-} 
+}
+void NamedType::Check(){
+id->Check();
+}
 
 
 ArrayType::ArrayType(yyltype loc, Type *et) : Type(loc) {

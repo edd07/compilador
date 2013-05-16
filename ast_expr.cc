@@ -45,11 +45,19 @@ CompoundExpr::CompoundExpr(Operator *o, Expr *r)
     (op=o)->SetParent(this);
     (right=r)->SetParent(this);
 }
+void CompoundExpr::Check(){
+if(left!=NULL) left->Check();
+right->Check();
+}
    
   
 ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
     (base=b)->SetParent(this); 
     (subscript=s)->SetParent(this);
+}
+void ArrayAccess::Check(){
+base->Check();
+subscript->Check();
 }
      
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
@@ -58,6 +66,10 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
     base = b; 
     if (base) base->SetParent(this); 
     (field=f)->SetParent(this);
+}
+void FieldAccess::Check(){
+base->Check();
+field->Check();
 }
 
 
@@ -68,11 +80,21 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  {
     (field=f)->SetParent(this);
     (actuals=a)->SetParentAll(this);
 }
+void Call::Check(){
+field->Check();
+for (int i = 0; i < actuals->NumElements(); i++) {
+    		Expr* expr = actuals->Nth(i);
+			expr->Check();
+     }
+}
  
 
 NewExpr::NewExpr(yyltype loc, NamedType *c) : Expr(loc) { 
   Assert(c != NULL);
   (cType=c)->SetParent(this);
+}
+void NewExpr::Check(){
+cType->Check();
 }
 
 
@@ -80,6 +102,10 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     Assert(sz != NULL && et != NULL);
     (size=sz)->SetParent(this); 
     (elemType=et)->SetParent(this);
+}
+void NewArrayExpr::Check(){
+size->Check();
+elemType->Check();
 }
 
        
