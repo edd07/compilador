@@ -11,11 +11,17 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
     Assert(n != NULL);
     (id=n)->SetParent(this); 
 }
+void Decl::Check(){
+    id->Check();
+}
 
 
 VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     Assert(n != NULL && t != NULL);
     (type=t)->SetParent(this);
+}
+void VarDecl::Check(){
+	type->Check();
 }
   
 
@@ -32,6 +38,19 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
             table->Enter(decl->id->name, decl);
      }
 }
+void ClassDecl::Check(){
+	extends->Check();
+	
+	for (int i = 0; i < implements->NumElements(); i++) {
+        NamedType* nType = implements->Nth(i);
+        nType->Check();
+     }
+     
+    for (int i = 0; i < members->NumElements(); i++) {
+        Decl* decl = members->Nth(i);
+        decl->Check();
+    }
+}
 
 
 InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
@@ -39,10 +58,17 @@ InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
     (members=m)->SetParentAll(this);
     
     for (int i = 0; i < m->NumElements(); i++) {
-    		Decl* decl = m->Nth(i);
-            table->Enter(decl->id->name, decl);
+        Decl* decl = m->Nth(i);
+        table->Enter(decl->id->name, decl);
      }
 }
+void InterfaceDecl::Check(){     
+    for (int i = 0; i < members->NumElements(); i++) {
+        Decl* decl = members->Nth(i);
+        decl->Check();
+    }
+}
+
 
 	
 FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
@@ -55,6 +81,18 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
 void FnDecl::SetFunctionBody(Stmt *b) { 
     (body=b)->SetParent(this);
 }
+
+void FnDecl::Check(){
+    returnType->Check();
+    body->Check();
+
+     
+    for (int i = 0; i < formals->NumElements(); i++) {
+        VarDecl* vDecl = formals->Nth(i);
+        vDecl->Check();
+    }
+}
+
 
 
 
