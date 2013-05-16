@@ -26,12 +26,22 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
     if (extends) extends->SetParent(this);
     (implements=imp)->SetParentAll(this);
     (members=m)->SetParentAll(this);
+    
+    for (int i = 0; i < m->NumElements(); i++) {
+    		Decl* decl = m->Nth(i);
+            table->Enter(decl->id->name, decl);
+     }
 }
 
 
 InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
     Assert(n != NULL && m != NULL);
     (members=m)->SetParentAll(this);
+    
+    for (int i = 0; i < m->NumElements(); i++) {
+    		Decl* decl = m->Nth(i);
+            table->Enter(decl->id->name, decl);
+     }
 }
 
 	

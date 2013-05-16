@@ -11,6 +11,11 @@
 Program::Program(List<Decl*> *d) {
     Assert(d != NULL);
     (decls=d)->SetParentAll(this);
+    
+    for (int i = 0; i < d->NumElements(); i++) {
+    		Decl* decl = d->Nth(i);
+            table->Enter(decl->id->name, decl);
+     }
 }
 
 void Program::Check() {
@@ -27,6 +32,18 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     Assert(d != NULL && s != NULL);
     (decls=d)->SetParentAll(this);
     (stmts=s)->SetParentAll(this);
+    
+    for (int i = 0; i < d->NumElements(); i++) {
+    		Decl* decl = d->Nth(i);
+            table->Enter(decl->id->name, decl);
+     }
+}
+
+void StmtBlock::Check(){
+	for (int i = 0; i < stmts->NumElements(); i++) {
+    		Stmt* stmt = stmts->Nth(i);
+            stmt->Check();
+     }
 }
 
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) { 
@@ -34,11 +51,21 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
     (test=t)->SetParent(this); 
     (body=b)->SetParent(this);
 }
+void ConditionalStmt::Check(){
+	test->Check();
+    body->Check();
+}
 
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) { 
     Assert(i != NULL && t != NULL && s != NULL && b != NULL);
     (init=i)->SetParent(this);
     (step=s)->SetParent(this);
+}
+void ForStmt::Check(){
+	init->Check();
+	test->Check();
+	step->Check();
+	body->Check();
 }
 
 IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) { 
@@ -46,16 +73,30 @@ IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) {
     elseBody = eb;
     if (elseBody) elseBody->SetParent(this);
 }
+void IfStmt::Check(){
+test->Check();
+body->Check();
+elseBody->Check();
+}
 
 
 ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) { 
     Assert(e != NULL);
     (expr=e)->SetParent(this);
 }
+void ReturnStmt::Check(){
+expr->Check();
+}
   
 PrintStmt::PrintStmt(List<Expr*> *a) {    
     Assert(a != NULL);
     (args=a)->SetParentAll(this);
+}
+void PrintStmt::Check(){
+for (int i = 0; i < args->NumElements(); i++) {
+    		Expr* expr = args->Nth(i);
+			expr->Check();
+     }
 }
 
 

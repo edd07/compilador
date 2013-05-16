@@ -32,29 +32,33 @@
 #include <stdlib.h>   // for NULL
 #include "location.h"
 #include <iostream>
+#include "hashtable.h"
 
-class Node 
+class Decl;
+
+class Node
 {
   protected:
     yyltype *location;
     Node *parent;
 
   public:
+    Hashtable<Decl*> *table;
     Node(yyltype loc);
-    Node();
+    Node();    
     
     yyltype *GetLocation()   { return location; }
     void SetParent(Node *p)  { parent = p; }
     Node *GetParent()        { return parent; }
+    void Check();
 };
    
 
 class Identifier : public Node 
 {
-  protected:
-    char *name;
     
   public:
+  	char *name;
     Identifier(yyltype loc, const char *name);
     friend std::ostream& operator<<(std::ostream& out, Identifier *id) { return out << id->name; }
 };

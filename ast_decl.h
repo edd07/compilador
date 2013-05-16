@@ -23,10 +23,9 @@ class Stmt;
 
 class Decl : public Node 
 {
-  protected:
-    Identifier *id;
   
   public:
+      Identifier *id;
     Decl(Identifier *name);
     friend std::ostream& operator<<(std::ostream& out, Decl *d) { return out << d->id; }
 };
