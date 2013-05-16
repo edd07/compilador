@@ -5,6 +5,7 @@
 #include "ast_decl.h"
 #include "ast_type.h"
 #include "ast_stmt.h"
+#include "errors.h"
         
          
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
@@ -12,6 +13,11 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
     (id=n)->SetParent(this); 
 }
 void Decl::Check(){
+	// Checar que no este ya declarado este id en el scope actual
+		printf("%s", id->name);
+	Decl* prev=parent->table->Lookup(id->name);
+	if( prev != this )
+		ReportError::DeclConflict(this, prev);
     id->Check();
 }
 
@@ -21,6 +27,7 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     (type=t)->SetParent(this);
 }
 void VarDecl::Check(){
+	Decl::Check();
 	type->Check();
 }
   
@@ -39,6 +46,7 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
      }
 }
 void ClassDecl::Check(){
+	Decl::Check();
 	extends->Check();
 	
 	for (int i = 0; i < implements->NumElements(); i++) {
@@ -63,6 +71,7 @@ InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
      }
 }
 void InterfaceDecl::Check(){     
+Decl::Check();
     for (int i = 0; i < members->NumElements(); i++) {
         Decl* decl = members->Nth(i);
         decl->Check();
@@ -76,13 +85,27 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
     (returnType=r)->SetParent(this);
     (formals=d)->SetParentAll(this);
     body = NULL;
+    
+    for (int i = 0; i < d->NumElements(); i++) {
+    		Decl* decl = d->Nth(i);
+            table->Enter(decl->id->name, decl);
+     }
 }
 
-void FnDecl::SetFunctionBody(Stmt *b) { 
+void FnDecl::SetFunctionBody(Stmt *b) {
+ 
     (body=b)->SetParent(this);
+    
+    Iterator<Decl*> iter = b->table->GetIterator();
+            Decl *decl;
+            while ((decl = iter.GetNextValue()) != NULL) {
+                 table->Enter(decl->id->name,decl);
+            }
 }
 
 void FnDecl::Check(){
+printf("FnDecl::Check");
+Decl::Check();
     returnType->Check();
     body->Check();
 

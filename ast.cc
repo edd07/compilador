@@ -20,6 +20,10 @@ Node::Node() {
     parent = NULL;
     table = new Hashtable<Decl*>();
 }
+
+void Node::Check(){
+printf("node");
+}
 	 
 Identifier::Identifier(yyltype loc, const char *n) : Node(loc) {
     name = strdup(n);

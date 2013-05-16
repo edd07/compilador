@@ -26,6 +26,11 @@ void Program::Check() {
      *      checking itself, which makes for a great use of inheritance
      *      and polymorphism in the node classes.
      */
+      for (int i = 0; i < decls->NumElements(); i++) {
+    		Decl* decl = decls->Nth(i);
+			decl->Check();
+     }
+     
 }
 
 StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
@@ -40,7 +45,11 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
 }
 
 void StmtBlock::Check(){
-	for (int i = 0; i < stmts->NumElements(); i++) {
+	for (int i = 0; i < decls->NumElements(); i++) {
+    		Decl* decl = decls->Nth(i);
+            decl->Check();
+     }
+     for (int i = 0; i < stmts->NumElements(); i++) {
     		Stmt* stmt = stmts->Nth(i);
             stmt->Check();
      }
