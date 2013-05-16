@@ -13,20 +13,20 @@ Program::Program(List<Decl*> *d) {
     (decls=d)->SetParentAll(this);
 }
 
-void Program::PrintChildren(int indentLevel) {
-    decls->PrintAll(indentLevel+1);
-    printf("\n");
+void Program::Check() {
+    /* pp3: here is where the semantic analyzer is kicked off.
+     *      The general idea is perform a tree traversal of the
+     *      entire program, examining all constructs for compliance
+     *      with the semantic rules.  Each node can have its own way of
+     *      checking itself, which makes for a great use of inheritance
+     *      and polymorphism in the node classes.
+     */
 }
 
 StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     Assert(d != NULL && s != NULL);
     (decls=d)->SetParentAll(this);
     (stmts=s)->SetParentAll(this);
-}
-
-void StmtBlock::PrintChildren(int indentLevel) {
-    decls->PrintAll(indentLevel+1);
-    stmts->PrintAll(indentLevel+1);
 }
 
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) { 
@@ -41,28 +41,10 @@ ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) {
     (step=s)->SetParent(this);
 }
 
-void ForStmt::PrintChildren(int indentLevel) {
-    init->Print(indentLevel+1, "(init) ");
-    test->Print(indentLevel+1, "(test) ");
-    step->Print(indentLevel+1, "(step) ");
-    body->Print(indentLevel+1, "(body) ");
-}
-
-void WhileStmt::PrintChildren(int indentLevel) {
-    test->Print(indentLevel+1, "(test) ");
-    body->Print(indentLevel+1, "(body) ");
-}
-
 IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) { 
     Assert(t != NULL && tb != NULL); // else can be NULL
     elseBody = eb;
     if (elseBody) elseBody->SetParent(this);
-}
-
-void IfStmt::PrintChildren(int indentLevel) {
-    test->Print(indentLevel+1, "(test) ");
-    body->Print(indentLevel+1, "(then) ");
-    if (elseBody) elseBody->Print(indentLevel+1, "(else) ");
 }
 
 
@@ -70,18 +52,10 @@ ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) {
     Assert(e != NULL);
     (expr=e)->SetParent(this);
 }
-
-void ReturnStmt::PrintChildren(int indentLevel) {
-    expr->Print(indentLevel+1);
-}
   
 PrintStmt::PrintStmt(List<Expr*> *a) {    
     Assert(a != NULL);
     (args=a)->SetParentAll(this);
-}
-
-void PrintStmt::PrintChildren(int indentLevel) {
-    args->PrintAll(indentLevel+1, "(args) ");
 }
 
 
