@@ -27,7 +27,7 @@ class Program : public Node
      
   public:
      Program(List<Decl*> *declList);
-     virtual void Check();
+     void Check();
 };
 
 class Stmt : public Node
@@ -45,7 +45,7 @@ class StmtBlock : public Stmt
     
   public:
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
-    virtual void Check();
+    void Check();
 };
 
   
@@ -57,7 +57,7 @@ class ConditionalStmt : public Stmt
   
   public:
     ConditionalStmt(Expr *testExpr, Stmt *body);
-        virtual void Check();
+        void Check();
 };
 
 class LoopStmt : public ConditionalStmt 
@@ -65,7 +65,7 @@ class LoopStmt : public ConditionalStmt
   public:
     LoopStmt(Expr *testExpr, Stmt *body)
             : ConditionalStmt(testExpr, body) {}
-               virtual void Check();
+               void Check();
 };
 
 class ForStmt : public LoopStmt 
@@ -75,14 +75,14 @@ class ForStmt : public LoopStmt
   
   public:
     ForStmt(Expr *init, Expr *test, Expr *step, Stmt *body);
-        virtual void Check();
+        void Check();
 };
 
 class WhileStmt : public LoopStmt 
 {
   public:
     WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
-        virtual void Check();
+        void Check();
 };
 
 class IfStmt : public ConditionalStmt 
@@ -92,14 +92,14 @@ class IfStmt : public ConditionalStmt
   
   public:
     IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
-        virtual void Check();
+        void Check();
 };
 
 class BreakStmt : public Stmt 
 {
   public:
     BreakStmt(yyltype loc) : Stmt(loc) {}
-        virtual void Check();
+        void Check();
     
 };
 
@@ -110,7 +110,7 @@ class ReturnStmt : public Stmt
   
   public:
     ReturnStmt(yyltype loc, Expr *expr);
-        virtual void Check();
+        void Check();
 };
 
 class PrintStmt : public Stmt
@@ -120,7 +120,7 @@ class PrintStmt : public Stmt
     
   public:
     PrintStmt(List<Expr*> *arguments);
-        virtual void Check();
+        void Check();
 };
 
 

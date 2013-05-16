@@ -28,6 +28,7 @@ void Program::Check() {
      */
       for (int i = 0; i < decls->NumElements(); i++) {
     		Decl* decl = decls->Nth(i);
+    		//printf("%s",decl->id->name);
 			decl->Check();
      }
      

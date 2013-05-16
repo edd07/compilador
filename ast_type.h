@@ -41,7 +41,7 @@ class NamedType : public Type
     
   public:
     NamedType(Identifier *i);
-    virtual void Check();
+    void Check();
     
     void PrintToStream(std::ostream& out) { out << id; }
 };

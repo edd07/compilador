@@ -14,8 +14,8 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
 }
 void Decl::Check(){
 	// Checar que no este ya declarado este id en el scope actual
-		printf("%s", id->name);
-	Decl* prev=parent->table->Lookup(id->name);
+	printf("Decl::Check\n");
+	Decl* prev = parent->table->Lookup(id->name);
 	if( prev != this )
 		ReportError::DeclConflict(this, prev);
     id->Check();

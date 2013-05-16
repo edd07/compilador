@@ -22,7 +22,6 @@ Node::Node() {
 }
 
 void Node::Check(){
-printf("node");
 }
 	 
 Identifier::Identifier(yyltype loc, const char *n) : Node(loc) {
