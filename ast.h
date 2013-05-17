@@ -35,6 +35,8 @@
 #include "hashtable.h"
 
 class Decl;
+struct Declaracion;
+
 
 class Node
 {
@@ -43,7 +45,7 @@ class Node
     Node *parent;
 
   public:
-    Hashtable<Decl*> *table;
+    Hashtable<Declaracion*> *table;
     Node(yyltype loc);
     Node();    
     
@@ -61,6 +63,7 @@ class Identifier : public Node
   	char *name;
     Identifier(yyltype loc, const char *name);
     friend std::ostream& operator<<(std::ostream& out, Identifier *id) { return out << id->name; }
+    void Check();
 };
 
 

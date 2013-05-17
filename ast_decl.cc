@@ -12,15 +12,8 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
     Assert(n != NULL);
     (id=n)->SetParent(this); 
 }
-void Decl::Check(){
-	// Checar que no este ya declarado este id en el scope actual
-	printf("Decl::Check  ");
-    printf("%s", id->name);
-    printf("\n");
-	Decl* prev = parent->table->Lookup(id->name);
-	if( prev != this )
-		ReportError::DeclConflict(this, prev);
-    id->Check();
+Decl::Check(){
+	id->Check();
 }
 
 
@@ -29,10 +22,10 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     (type=t)->SetParent(this);
 }
 void VarDecl::Check(){
-    printf("VarDecl::Check  ");
+
     printf("%s", id->name);
     printf("\n");
-	Decl::Check();
+    
 	type->Check();
 }
   
@@ -51,6 +44,8 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
      }
 }
 void ClassDecl::Check(){
+	scope_stack[++stack_i] = table; //push
+	
 	Decl::Check();
 	extends->Check();
 	
@@ -63,6 +58,8 @@ void ClassDecl::Check(){
         Decl* decl = members->Nth(i);
         decl->Check();
     }
+    
+  	scope_stack[stack_i--] = NULL; //pop
 }
 
 
