@@ -15,7 +15,7 @@ Program::Program(List<Decl*> *d) {
     
     for (int i = 0; i < d->NumElements(); i++) {
     		Decl* decl = d->Nth(i);
-            Decl* prev = table->Lookup(decl->id->name);
+            Decl* prev = table->Lookup(decl->id->name)->decl;
     		
     		if (table->Lookup(decl->id->name) != NULL) {
                 ReportError::DeclConflict(decl, prev);
@@ -51,7 +51,7 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     
     for (int i = 0; i < d->NumElements(); i++) {
     		Decl* decl = d->Nth(i);
-    		Decl* prev = table->Lookup(decl->id->name);
+    		Decl* prev = table->Lookup(decl->id->name)->decl;
     		
     		if (table->Lookup(decl->id->name) != NULL) {
                 ReportError::DeclConflict(decl, prev);

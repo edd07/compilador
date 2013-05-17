@@ -17,7 +17,7 @@ void Decl::Check(){
 	printf("Decl::Check  ");
     printf("%s", id->name);
     printf("\n");
-	Decl* prev = parent->table->Lookup(id->name);
+	Decl* prev = parent->table->Lookup(id->name)->decl;
 	if( prev != this )
 		ReportError::DeclConflict(this, prev);
     id->Check();
@@ -47,7 +47,7 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
     
     for (int i = 0; i < m->NumElements(); i++) {
     		Decl* decl = m->Nth(i);
-    		Decl* prev = table->Lookup(decl->id->name);
+    		Decl* prev = table->Lookup(decl->id->name)->decl;
     		
             if (table->Lookup(decl->id->name) != NULL) {
                 ReportError::DeclConflict(decl, prev);
@@ -81,7 +81,7 @@ InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
     
     for (int i = 0; i < m->NumElements(); i++) {
         Decl* decl = m->Nth(i);
-        Decl* prev = table->Lookup(decl->id->name);
+        Decl* prev = table->Lookup(decl->id->name)->decl;
         
         if (table->Lookup(decl->id->name) != NULL) {
             ReportError::DeclConflict(decl, prev);
@@ -111,7 +111,7 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
     
     for (int i = 0; i < d->NumElements(); i++) {
     		Decl* decl = d->Nth(i);
-            Decl* prev = table->Lookup(decl->id->name);
+            Decl* prev = table->Lookup(decl->id->name)->decl;
         
             if (table->Lookup(decl->id->name) != NULL) {
                 ReportError::DeclConflict(decl, prev);
@@ -131,8 +131,8 @@ void FnDecl::SetFunctionBody(Stmt *b) {
     Iterator<Decl*> iter = b->table->GetIterator();
     Decl *decl;
     Decl *prev;
-    while ((decl = iter.GetNextValue()) != NULL) {
-        prev = table->Lookup(decl->id->name);
+    while ((decl = iter.GetNextValue()->decl) != NULL) {
+        prev = table->Lookup(decl->id->name)->decl;
         
         if (table->Lookup(decl->id->name) != NULL) {
             ReportError::DeclConflict(decl, prev);
