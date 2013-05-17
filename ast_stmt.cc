@@ -15,7 +15,16 @@ Program::Program(List<Decl*> *d) {
     
     for (int i = 0; i < d->NumElements(); i++) {
     		Decl* decl = d->Nth(i);
-            table->Enter(decl->id->name, decl);
+            Decl* prev = table->Lookup(decl->id->name);
+    		
+    		if (table->Lookup(decl->id->name) != NULL) {
+                ReportError::DeclConflict(decl, prev);
+    		 } else {
+    		    Declaracion dcl;
+    		    dcl.tipo = decl->typeName;
+    		    dcl.decl = decl;
+                table->Enter(decl->id->name, dcl);
+            }
      }
 }
 
@@ -43,10 +52,15 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     for (int i = 0; i < d->NumElements(); i++) {
     		Decl* decl = d->Nth(i);
     		Decl* prev = table->Lookup(decl->id->name);
-    		if (table->Lookup(decl->id->name) != NULL)
+    		
+    		if (table->Lookup(decl->id->name) != NULL) {
                 ReportError::DeclConflict(decl, prev);
-    		else
-                table->Enter(decl->id->name, decl);
+    		 } else {
+    		    Declaracion dcl;
+    		    dcl.tipo = decl->typeName;
+    		    dcl.decl = decl;
+                table->Enter(decl->id->name, dcl);
+            }
      }
 }
 
