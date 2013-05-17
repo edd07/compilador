@@ -14,7 +14,9 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
 }
 void Decl::Check(){
 	// Checar que no este ya declarado este id en el scope actual
-	printf("Decl::Check\n");
+	printf("Decl::Check  ");
+    printf("%s", id->name);
+    printf("\n");
 	Decl* prev = parent->table->Lookup(id->name);
 	if( prev != this )
 		ReportError::DeclConflict(this, prev);
@@ -27,6 +29,9 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     (type=t)->SetParent(this);
 }
 void VarDecl::Check(){
+    printf("VarDecl::Check  ");
+    printf("%s", id->name);
+    printf("\n");
 	Decl::Check();
 	type->Check();
 }
@@ -104,8 +109,10 @@ void FnDecl::SetFunctionBody(Stmt *b) {
 }
 
 void FnDecl::Check(){
-printf("FnDecl::Check");
-Decl::Check();
+    printf("FnDecl::Check  ");
+    printf("%s", id->name);
+    printf("\n");
+    Decl::Check();
     returnType->Check();
     body->Check();
 

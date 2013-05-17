@@ -6,6 +6,7 @@
 #include "ast_type.h"
 #include "ast_decl.h"
 #include "ast_expr.h"
+#include "errors.h"
 
 
 Program::Program(List<Decl*> *d) {
@@ -41,7 +42,11 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     
     for (int i = 0; i < d->NumElements(); i++) {
     		Decl* decl = d->Nth(i);
-            table->Enter(decl->id->name, decl);
+    		Decl* prev = table->Lookup(decl->id->name);
+    		if (table->Lookup(decl->id->name) != NULL)
+                ReportError::DeclConflict(decl, prev);
+    		else
+                table->Enter(decl->id->name, decl);
      }
 }
 
