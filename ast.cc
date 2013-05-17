@@ -9,9 +9,6 @@
 #include <stdio.h>  // printf
 #include "errors.h"
 
-scope_stack[1024];
-int stack_i = 0;
-
 
 Node::Node(yyltype loc) {
     location = new yyltype(loc);

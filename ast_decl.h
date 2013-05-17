@@ -33,11 +33,9 @@ class Decl : public Node
 };
 
 class VarDecl : public Decl 
-{
-  protected:
+{    
+  public:   
     Type *type;
-    
-  public:
     VarDecl(Identifier *name, Type *type);
     
     void Check();

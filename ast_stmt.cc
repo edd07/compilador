@@ -21,9 +21,9 @@ Program::Program(List<Decl*> *d) {
                 ReportError::DeclConflict(decl, prev);
     		 } else {
     		    Declaracion dcl;
-    		    dcl.tipo = decl->typeName;
+    		    //dcl.tipo = decl->typeName;
     		    dcl.decl = decl;
-                table->Enter(decl->id->name, dcl);
+                table->Enter(decl->id->name, &dcl);
             }
      }
 }
@@ -57,9 +57,9 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
                 ReportError::DeclConflict(decl, prev);
     		 } else {
     		    Declaracion dcl;
-    		    dcl.tipo = decl->typeName;
+    		    //dcl.tipo = decl->typeName;
     		    dcl.decl = decl;
-                table->Enter(decl->id->name, dcl);
+                table->Enter(decl->id->name, &dcl);
             }
      }
 }

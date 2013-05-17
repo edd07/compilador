@@ -13,7 +13,7 @@ Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
     Assert(n != NULL);
     (id=n)->SetParent(this); 
 }
-Decl::Check(){
+void Decl::Check(){
 	id->Check();
 }
 
@@ -47,9 +47,10 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
                 ReportError::DeclConflict(decl, prev);
     		 } else {
     		    Declaracion dcl;
-    		    dcl.tipo = decl->typeName;
+    		    //dcl.tipo = decl->type->typeName;
     		    dcl.decl = decl;
-                table->Enter(decl->id->name, dcl);
+    		    Declaracion* ptr = &dcl;
+                table->Enter(decl->id->name, ptr);
             }
      }
 }
@@ -85,9 +86,10 @@ InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
             ReportError::DeclConflict(decl, prev);
         } else {
             Declaracion dcl;
-            dcl.tipo = decl->typeName;
+            //dcl.tipo = decl->typeName;
             dcl.decl = decl;
-            table->Enter(decl->id->name, dcl);
+            Declaracion* ptr = &dcl;
+            table->Enter(decl->id->name, ptr);
         }
      }
 }
@@ -108,16 +110,17 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
     body = NULL;
     
     for (int i = 0; i < d->NumElements(); i++) {
-    		Decl* decl = d->Nth(i);
+    		VarDecl* decl = d->Nth(i);
             Decl* prev = table->Lookup(decl->id->name)->decl;
         
             if (table->Lookup(decl->id->name) != NULL) {
                 ReportError::DeclConflict(decl, prev);
             } else {
                 Declaracion dcl;
-                dcl.tipo = decl->typeName;
+                dcl.tipo = decl->type->typeName;
                 dcl.decl = decl;
-                table->Enter(decl->id->name, dcl);
+                Declaracion* ptr = &dcl;                
+                table->Enter(decl->id->name, ptr);
             }
     }
 }
@@ -126,19 +129,20 @@ void FnDecl::SetFunctionBody(Stmt *b) {
  
     (body=b)->SetParent(this);
     
-    Iterator<Decl*> iter = b->table->GetIterator();
+    Iterator<Declaracion*> iter = b->table->GetIterator();
     Decl *decl;
     Decl *prev;
     while ((decl = iter.GetNextValue()->decl) != NULL) {
         prev = table->Lookup(decl->id->name)->decl;
         
         if (table->Lookup(decl->id->name) != NULL) {
-            ReportError::DeclConflict(decl->decl, prev->decl);
+            ReportError::DeclConflict(decl, prev);
         } else {
             Declaracion dcl;
-            dcl.tipo = decl->typeName;
+            //dcl.tipo = decl->type->typeName;
             dcl.decl = decl;
-            table->Enter(decl->id->name, dcl);
+            Declaracion* ptr = &dcl;
+            table->Enter(decl->id->name, ptr);
         }
     }
 }

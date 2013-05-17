@@ -26,10 +26,8 @@
 
  */
 #include "hashtable.h"
+
 #ifndef _H_ast
-struct Declaracion;
-Hashtable<Declaracion*>* scope_stack;
-int stack_i;
 #define _H_ast
 
 #include <stdlib.h>   // for NULL
@@ -38,7 +36,14 @@ int stack_i;
 
 class Decl;
 
+struct Declaracion {
+	std::string tipo;
+	Decl* decl;
+};
 
+Hashtable<Declaracion*>* scope_stack[1024];
+
+int stack_i;
 
 class Node
 {
