@@ -25,17 +25,19 @@
  * semantic rules that apply to that construct.
 
  */
-
+#include "hashtable.h"
 #ifndef _H_ast
+struct Declaracion;
+Hashtable<Declaracion*>* scope_stack;
+int stack_i;
 #define _H_ast
 
 #include <stdlib.h>   // for NULL
 #include "location.h"
 #include <iostream>
-#include "hashtable.h"
 
 class Decl;
-struct Declaracion;
+
 
 
 class Node

@@ -6,6 +6,7 @@
 #include "ast_type.h"
 #include "ast_stmt.h"
 #include "errors.h"
+
         
          
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
@@ -125,14 +126,14 @@ void FnDecl::SetFunctionBody(Stmt *b) {
  
     (body=b)->SetParent(this);
     
-    Iterator<Decl*> iter = b->table->GetIterator();
-    Decl *decl;
-    Decl *prev;
+    Iterator<Declaracion*> iter = b->table->GetIterator();
+    Declaracion *decl;
+    Declaracion *prev;
     while ((decl = iter.GetNextValue()) != NULL) {
         prev = table->Lookup(decl->id->name);
         
         if (table->Lookup(decl->id->name) != NULL) {
-            ReportError::DeclConflict(decl, prev);
+            ReportError::DeclConflict(decl->decl, prev->decl);
         } else {
             Declaracion dcl;
             dcl.tipo = decl->typeName;

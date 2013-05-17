@@ -9,15 +9,7 @@
 #include <stdio.h>  // printf
 #include "errors.h"
 
-
-// stack de scopes
-
-struct Declaracion {
-	std::string tipo;
-	Decl* decl;
-};
-
-Hashtable<Declaracion*>* scope_stack[1024];
+scope_stack[1024];
 int stack_i = 0;
 
 
