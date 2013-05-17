@@ -41,9 +41,11 @@ struct Declaracion {
 	Decl* decl;
 };
 
-Hashtable<Declaracion*>* scope_stack[1024];
+namespace global {
+    Hashtable<Declaracion*>* scope_stack;
 
-int stack_i;
+    int stack_i;
+}
 
 class Node
 {

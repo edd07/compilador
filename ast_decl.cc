@@ -2,6 +2,7 @@
  * -----------------
  * Implementation of Decl node classes.
  */
+ 
 #include "ast_decl.h"
 #include "ast_type.h"
 #include "ast_stmt.h"
@@ -55,7 +56,7 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
      }
 }
 void ClassDecl::Check(){
-	scope_stack[++stack_i] = table; //push
+	global::scope_stack[++global::stack_i] = table; //push
 	
 	Decl::Check();
 	extends->Check();
@@ -70,7 +71,7 @@ void ClassDecl::Check(){
         decl->Check();
     }
     
-  	scope_stack[stack_i--] = NULL; //pop
+  	global::scope_stack[global::stack_i--] = NULL; //pop
 }
 
 

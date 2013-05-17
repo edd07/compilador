@@ -10,6 +10,7 @@
 #include "errors.h"
 
 
+
 Node::Node(yyltype loc) {
     location = new yyltype(loc);
     parent = NULL;
@@ -32,8 +33,8 @@ Identifier::Identifier(yyltype loc, const char *n) : Node(loc) {
 
 void Identifier::Check(){
 	//aqui es donde pasa toda la magia
-	int i = stack_i;
-	while(i>=0 && scope_stack[i]->Lookup(name)==NULL ){
+	int i = global::stack_i;
+	while(i>=0 && global::scope_stack[i].Lookup(name)==NULL ){
 		i--;
 	}
 	
