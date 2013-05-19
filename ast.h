@@ -42,8 +42,8 @@ struct Declaracion {
 };
 
 namespace global {
-    Hashtable<Declaracion*>* scope_stack;
 
+    Hashtable<Declaracion*>** scope_stack;
     int stack_i;
 }
 

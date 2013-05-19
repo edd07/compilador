@@ -36,6 +36,8 @@
 #include <map>
 #include <string.h>
 
+
+
 struct ltstr {
   bool operator()(const char* s1, const char* s2) const
   { return strcmp(s1, s2) < 0; }
@@ -101,7 +103,6 @@ template<class Value> class Iterator {
          // Visits every value, even those that are shadowed.
     Value GetNextValue();
 };
-
 
 #include "hashtable.cc" // icky, but allows implicit template instantiation
 

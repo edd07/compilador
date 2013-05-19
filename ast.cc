@@ -34,7 +34,7 @@ Identifier::Identifier(yyltype loc, const char *n) : Node(loc) {
 void Identifier::Check(){
 	//aqui es donde pasa toda la magia
 	int i = global::stack_i;
-	while(i>=0 && global::scope_stack[i].Lookup(name)==NULL ){
+	while(i>=0 && global::scope_stack[i]->Lookup(name)==NULL ){
 		i--;
 	}
 	

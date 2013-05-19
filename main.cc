@@ -22,9 +22,12 @@
  */
 int main(int argc, char *argv[])
 {
+
+
+
     ParseCommandLine(argc, argv);
     global::stack_i=0;
-    global::scope_stack = new Hashtable<Declaracion*>[1024];
+    global::scope_stack = new Hashtable<Declaracion*>*[1024];
     
     InitScanner();
     InitParser();
