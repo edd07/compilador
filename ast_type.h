@@ -35,10 +35,8 @@ class Type : public Node
 
 class NamedType : public Type 
 {
-  protected:
-    Identifier *id;
-    
   public:
+    Identifier *id;
     NamedType(Identifier *i);
     void Check();
     

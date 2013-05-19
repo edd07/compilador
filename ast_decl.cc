@@ -23,8 +23,9 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     Assert(n != NULL && t != NULL);
     (type=t)->SetParent(this);
 }
+
 void VarDecl::Check(){
-    
+
 	type->Check();
 }
   
@@ -128,6 +129,7 @@ void FnDecl::SetFunctionBody(Stmt *b) {
 
 void FnDecl::Check(){
     //Decl::Check(); no checar el nombre que se esta definiendo
+    
     returnType->Check();
     body->Check();
 

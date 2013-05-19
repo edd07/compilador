@@ -46,9 +46,10 @@ class ClassDecl : public Decl
   protected:
     List<Decl*> *members;
     NamedType *extends;
-    List<NamedType*> *implements;
+    
 
   public:
+    List<NamedType*> *implements;
     ClassDecl(Identifier *name, NamedType *extends, 
     List<NamedType*> *implements, List<Decl*> *members);
     
