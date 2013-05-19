@@ -33,35 +33,21 @@
 #include <stdlib.h>   // for NULL
 #include "location.h"
 #include <iostream>
-
-class Decl;
-
-struct Declaracion {
-	std::string tipo;
-	Decl* decl;
-};
-
-namespace global {
-
-    Hashtable<Declaracion*>** scope_stack;
-    int stack_i;
-}
+#include "errors.h"
 
 class Node
 {
-  protected:
+  public:
     yyltype *location;
     Node *parent;
-
-  public:
-    Hashtable<Declaracion*> *table;
+    Hashtable<Decl*> *table;
     Node(yyltype loc);
     Node();    
     
     yyltype *GetLocation()   { return location; }
     void SetParent(Node *p)  { parent = p; }
     Node *GetParent()        { return parent; }
-    void Check();
+    virtual void Check()=0;
 };
    
 

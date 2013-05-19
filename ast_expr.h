@@ -26,6 +26,7 @@ class Expr : public Stmt
   public:
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
+    virtual void Check();
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -33,7 +34,6 @@ class Expr : public Stmt
  * NULL. By using a valid, but no-op, node, we save that trouble */
 class EmptyExpr : public Expr
 {
-  public:
 };
 
 class IntConstant : public Expr 
@@ -43,6 +43,7 @@ class IntConstant : public Expr
   
   public:
     IntConstant(yyltype loc, int val);
+        void Check();
 };
 
 class DoubleConstant : public Expr 
@@ -52,6 +53,7 @@ class DoubleConstant : public Expr
     
   public:
     DoubleConstant(yyltype loc, double val);
+        void Check();
 };
 
 class BoolConstant : public Expr 
@@ -61,6 +63,7 @@ class BoolConstant : public Expr
     
   public:
     BoolConstant(yyltype loc, bool val);
+        void Check();
 };
 
 class StringConstant : public Expr 
@@ -70,6 +73,7 @@ class StringConstant : public Expr
     
   public:
     StringConstant(yyltype loc, const char *val);
+        void Check();
 };
 
 class NullConstant: public Expr 
@@ -86,6 +90,7 @@ class Operator : public Node
   public:
     Operator(yyltype loc, const char *tok);
     friend std::ostream& operator<<(std::ostream& out, Operator *o) { return out << o->tokenString; }
+        void Check();
  };
  
 class CompoundExpr : public Expr
@@ -97,7 +102,7 @@ class CompoundExpr : public Expr
   public:
     CompoundExpr(Expr *lhs, Operator *op, Expr *rhs); // for binary
     CompoundExpr(Operator *op, Expr *rhs);             // for unary
-    void Check();
+    virtual void Check();
 };
 
 class ArithmeticExpr : public CompoundExpr 

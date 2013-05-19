@@ -28,7 +28,7 @@ Type::Type(const char *n) {
     Assert(n);
     typeName = strdup(n);
 }
-
+void Type::Check(){}
 
 
 	
@@ -44,6 +44,9 @@ id->Check();
 ArrayType::ArrayType(yyltype loc, Type *et) : Type(loc) {
     Assert(et != NULL);
     (elemType=et)->SetParent(this);
+}
+void ArrayType::Check(){
+elemType->Check();
 }
 
 

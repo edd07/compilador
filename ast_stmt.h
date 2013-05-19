@@ -27,6 +27,7 @@ class Program : public Node
      
   public:
      Program(List<Decl*> *declList);
+     
      void Check();
 };
 
@@ -35,6 +36,7 @@ class Stmt : public Node
   public:
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
+     virtual void Check();
 };
 
 class StmtBlock : public Stmt 
@@ -98,9 +100,7 @@ class IfStmt : public ConditionalStmt
 class BreakStmt : public Stmt 
 {
   public:
-    BreakStmt(yyltype loc) : Stmt(loc) {}
-        void Check();
-    
+    BreakStmt(yyltype loc) : Stmt(loc) {}    
 };
 
 class ReturnStmt : public Stmt  

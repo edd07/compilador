@@ -15,6 +15,7 @@
 #include <string>
 using std::string;
 #include "location.h"
+#include "hashtable.h"
 class Type;
 class Identifier;
 class Expr;

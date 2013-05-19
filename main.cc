@@ -9,6 +9,7 @@
 #include "utility.h"
 #include "errors.h"
 #include "parser.h"
+#include "hashtable.h"
 
 
 
@@ -26,14 +27,12 @@ int main(int argc, char *argv[])
 
 
     ParseCommandLine(argc, argv);
-    global::stack_i=0;
-    global::scope_stack = new Hashtable<Declaracion*>*[1024];
+
     
     InitScanner();
     InitParser();
     yyparse();
-    
-    delete global::scope_stack;
+ 
     return (ReportError::NumErrors() == 0? 0 : -1);
 }
 

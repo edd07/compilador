@@ -12,24 +12,30 @@
 IntConstant::IntConstant(yyltype loc, int val) : Expr(loc) {
     value = val;
 }
+void IntConstant::Check(){}
 
 DoubleConstant::DoubleConstant(yyltype loc, double val) : Expr(loc) {
     value = val;
 }
+void DoubleConstant::Check(){}
 
 BoolConstant::BoolConstant(yyltype loc, bool val) : Expr(loc) {
     value = val;
 }
+void BoolConstant::Check(){}
 
 StringConstant::StringConstant(yyltype loc, const char *val) : Expr(loc) {
     Assert(val != NULL);
     value = strdup(val);
 }
+void StringConstant::Check(){}
 
 Operator::Operator(yyltype loc, const char *tok) : Node(loc) {
     Assert(tok != NULL);
     strncpy(tokenString, tok, sizeof(tokenString));
 }
+void Operator::Check(){}
+
 CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r) 
   : Expr(Join(l->GetLocation(), r->GetLocation())) {
     Assert(l != NULL && o != NULL && r != NULL);
@@ -37,7 +43,6 @@ CompoundExpr::CompoundExpr(Expr *l, Operator *o, Expr *r)
     (left=l)->SetParent(this); 
     (right=r)->SetParent(this);
 }
-
 CompoundExpr::CompoundExpr(Operator *o, Expr *r) 
   : Expr(Join(o->GetLocation(), r->GetLocation())) {
     Assert(o != NULL && r != NULL);
@@ -107,5 +112,10 @@ void NewArrayExpr::Check(){
 size->Check();
 elemType->Check();
 }
+
+void Expr::Check(){
+
+}
+
 
        

@@ -16,15 +16,12 @@ Program::Program(List<Decl*> *d) {
     
     for (int i = 0; i < d->NumElements(); i++) {
     		Decl* decl = d->Nth(i);
-            Decl* prev = table->Lookup(decl->id->name)->decl;
+            Decl* prev = table->Lookup(decl->id->name);
     		
     		if (table->Lookup(decl->id->name) != NULL) {
                 ReportError::DeclConflict(decl, prev);
     		 } else {
-    		    Declaracion dcl;
-    		    //dcl.tipo = decl->typeName;
-    		    dcl.decl = decl;
-                table->Enter(decl->id->name, &dcl);
+                table->Enter(decl->id->name, decl);
             }
      }
 }
@@ -52,15 +49,12 @@ StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
     
     for (int i = 0; i < d->NumElements(); i++) {
     		Decl* decl = d->Nth(i);
-    		Decl* prev = table->Lookup(decl->id->name)->decl;
+    		Decl* prev = table->Lookup(decl->id->name);
     		
     		if (table->Lookup(decl->id->name) != NULL) {
                 ReportError::DeclConflict(decl, prev);
     		 } else {
-    		    Declaracion dcl;
-    		    //dcl.tipo = decl->typeName;
-    		    dcl.decl = decl;
-                table->Enter(decl->id->name, &dcl);
+                table->Enter(decl->id->name, decl);
             }
      }
 }
@@ -84,6 +78,11 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
 void ConditionalStmt::Check(){
 	test->Check();
     body->Check();
+}
+
+void LoopStmt::Check(){}
+void WhileStmt::Check(){
+ConditionalStmt::Check();
 }
 
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) { 
@@ -128,5 +127,7 @@ for (int i = 0; i < args->NumElements(); i++) {
 			expr->Check();
      }
 }
+
+void Stmt::Check(){}
 
 

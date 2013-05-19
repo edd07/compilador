@@ -18,6 +18,10 @@
  */
 #define YYDEBUG 1
 
+
+#include "hashtable.h"
+
+
 #include <stdio.h>
 #include "scanner.h" // for yylex
 #include "parser.h"
@@ -425,5 +429,6 @@ Constant : T_IntConstant		{$$=new IntConstant(@1,$1);}
 void InitParser()
 {
    PrintDebug("parser", "Initializing parser");
-   yydebug = false;
+   yydebug = false; 
+	
 }

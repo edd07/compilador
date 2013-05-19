@@ -7,7 +7,7 @@
 #include "ast_type.h"
 #include "ast_stmt.h"
 #include "errors.h"
-
+#include "hashtable.h"
         
          
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
@@ -42,22 +42,16 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
     
     for (int i = 0; i < m->NumElements(); i++) {
     		Decl* decl = m->Nth(i);
-    		Decl* prev = table->Lookup(decl->id->name)->decl;
+    		Decl* prev = table->Lookup(decl->id->name);
     		
             if (table->Lookup(decl->id->name) != NULL) {
                 ReportError::DeclConflict(decl, prev);
     		 } else {
-    		    Declaracion dcl;
-    		    //dcl.tipo = decl->type->typeName;
-    		    dcl.decl = decl;
-    		    Declaracion* ptr = &dcl;
-                table->Enter(decl->id->name, ptr);
+                table->Enter(decl->id->name, decl);
             }
      }
 }
-void ClassDecl::Check(){
-	global::scope_stack[++global::stack_i] = table; //push
-	
+void ClassDecl::Check(){	
 	Decl::Check();
 	extends->Check();
 	
@@ -70,8 +64,6 @@ void ClassDecl::Check(){
         Decl* decl = members->Nth(i);
         decl->Check();
     }
-    
-  	global::scope_stack[global::stack_i--] = NULL; //pop
 }
 
 
@@ -81,16 +73,12 @@ InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
     
     for (int i = 0; i < m->NumElements(); i++) {
         Decl* decl = m->Nth(i);
-        Decl* prev = table->Lookup(decl->id->name)->decl;
+        Decl* prev = table->Lookup(decl->id->name);
         
         if (table->Lookup(decl->id->name) != NULL) {
             ReportError::DeclConflict(decl, prev);
         } else {
-            Declaracion dcl;
-            //dcl.tipo = decl->typeName;
-            dcl.decl = decl;
-            Declaracion* ptr = &dcl;
-            table->Enter(decl->id->name, ptr);
+            table->Enter(decl->id->name, decl);
         }
      }
 }
@@ -112,16 +100,12 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
     
     for (int i = 0; i < d->NumElements(); i++) {
     		VarDecl* decl = d->Nth(i);
-            Decl* prev = table->Lookup(decl->id->name)->decl;
+            Decl* prev = table->Lookup(decl->id->name);
         
             if (table->Lookup(decl->id->name) != NULL) {
                 ReportError::DeclConflict(decl, prev);
             } else {
-                Declaracion dcl;
-                dcl.tipo = decl->type->typeName;
-                dcl.decl = decl;
-                Declaracion* ptr = &dcl;                
-                table->Enter(decl->id->name, ptr);
+                table->Enter(decl->id->name, decl);
             }
     }
 }
@@ -130,20 +114,16 @@ void FnDecl::SetFunctionBody(Stmt *b) {
  
     (body=b)->SetParent(this);
     
-    Iterator<Declaracion*> iter = b->table->GetIterator();
+    Iterator<Decl*> iter = b->table->GetIterator();
     Decl *decl;
     Decl *prev;
-    while ((decl = iter.GetNextValue()->decl) != NULL) {
-        prev = table->Lookup(decl->id->name)->decl;
+    while ((decl = iter.GetNextValue()) != NULL) {
+        prev = table->Lookup(decl->id->name);
         
         if (table->Lookup(decl->id->name) != NULL) {
             ReportError::DeclConflict(decl, prev);
         } else {
-            Declaracion dcl;
-            //dcl.tipo = decl->type->typeName;
-            dcl.decl = decl;
-            Declaracion* ptr = &dcl;
-            table->Enter(decl->id->name, ptr);
+            table->Enter(decl->id->name, decl);
         }
     }
 }
