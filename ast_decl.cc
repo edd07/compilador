@@ -24,9 +24,6 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     (type=t)->SetParent(this);
 }
 void VarDecl::Check(){
-
-    printf("%s", id->name);
-    printf("\n");
     
 	type->Check();
 }
@@ -39,6 +36,7 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
     if (extends) extends->SetParent(this);
     (implements=imp)->SetParentAll(this);
     (members=m)->SetParentAll(this);
+    
     
     for (int i = 0; i < m->NumElements(); i++) {
     		Decl* decl = m->Nth(i);
@@ -53,7 +51,7 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
 }
 void ClassDecl::Check(){	
 	//Decl::Check(); // no checar el nombre que se esta definiendo
-	extends->Check();
+	if(extends) extends->Check();
 	
 	for (int i = 0; i < implements->NumElements(); i++) {
         NamedType* nType = implements->Nth(i);
@@ -129,9 +127,6 @@ void FnDecl::SetFunctionBody(Stmt *b) {
 }
 
 void FnDecl::Check(){
-    printf("FnDecl::Check  ");
-    printf("%s", id->name);
-    printf("\n");
     //Decl::Check(); no checar el nombre que se esta definiendo
     returnType->Check();
     body->Check();

@@ -5,6 +5,7 @@
  
 #include "ast_type.h"
 #include "ast_decl.h"
+#include "ast_stmt.h"
 #include <string.h>
 
  
@@ -28,15 +29,19 @@ Type::Type(const char *n) {
     Assert(n);
     typeName = strdup(n);
 }
-void Type::Check(){}
+void Type::Check(){
+
+}
 
 
 	
 NamedType::NamedType(Identifier *i) : Type(*i->GetLocation()) {
     Assert(i != NULL);
     (id=i)->SetParent(this);
+    Type::typeName = id->name;
 }
 void NamedType::Check(){
+Type::Check();
 id->Check();
 }
 
@@ -46,6 +51,7 @@ ArrayType::ArrayType(yyltype loc, Type *et) : Type(loc) {
     (elemType=et)->SetParent(this);
 }
 void ArrayType::Check(){
+
 elemType->Check();
 }
 
