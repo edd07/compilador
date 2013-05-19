@@ -9,6 +9,7 @@
 #include <string.h> // strdup
 #include <stdio.h>  // printf
 #include "errors.h"
+#include <algorithm>
 
 
 
@@ -34,30 +35,29 @@ void Identifier::Check(){
 	Node* ptr = this->parent;
 	reasonT reason;
 	
-	VarDecl* v = dynamic_cast<VarDecl*>(ptr);
-    if(v != 0) 
+    if(dynamic_cast<VarDecl*>(ptr) != 0) 
         reason = LookingForVariable;
-	
-	Type* t = dynamic_cast<Type*>(ptr);
-    NamedType* n = dynamic_cast<NamedType*>(ptr);
-    if( t != 0 || n != 0) {
-        if (dynamic_cast<InterfaceDecl*>(ptr) != 0 )
-            reason = LookingForInterface;
-        else
+    else if (dynamic_cast<ClassDecl*>(ptr) != 0)
+        reason = LookingForClass;
+    else if (dynamic_cast<InterfaceDecl*>(ptr) != 0)
+        reason = LookingForInterface;
+    else if (dynamic_cast<NamedType*>(ptr) != 0 || dynamic_cast<Type*>(ptr) != 0 || dynamic_cast<ArrayType*>(ptr) != 0)
+        if (dynamic_cast<ClassDecl*>(ptr->parent) != 0) {
+            List<NamedType*> elements = *dynamic_cast<ClassDecl*>(ptr->parent)->implements;
+            bool found = 0;
+            
+            for (int i = 0; i < elements.NumElements(); i++) {
+                if (elements.Nth(i)->id->name == dynamic_cast<NamedType*>(ptr)->id->name)
+                    found = 1;
+            }
+            if (found == 1)
+                reason = LookingForInterface;
+            else
+                reason = LookingForClass;
+        } else
             reason = LookingForType;
-    }
-    
-	ClassDecl* c = dynamic_cast<ClassDecl*>(ptr);
-    if ( c != 0)
-       reason = LookingForClass;
-	
-	FnDecl* f = dynamic_cast<FnDecl*>(ptr);
-    if(f != 0)
-       reason = LookingForFunction;
-    
-    ArrayType* a = dynamic_cast<ArrayType*>(ptr);
-    if( a != 0 )
-       reason = LookingForType;
+    else if (dynamic_cast<FnDecl*>(ptr) != 0)
+        reason = LookingForFunction;
 	
 	bool flag = true;
 	while(flag && ptr->table->Lookup(name)==NULL ){
@@ -66,9 +66,7 @@ void Identifier::Check(){
 		if(prg!=NULL) flag=false;
 	}
 	
-	if(!flag){
-	
+	if(!flag)
 		ReportError::IdentifierNotDeclared(this, reason);
-	}
 }
 

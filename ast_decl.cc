@@ -23,11 +23,7 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
     Assert(n != NULL && t != NULL);
     (type=t)->SetParent(this);
 }
-void VarDecl::Check(){
-
-    printf("%s", id->name);
-    printf("\n");
-    
+void VarDecl::Check(){    
 	type->Check();
 }
   
@@ -129,9 +125,6 @@ void FnDecl::SetFunctionBody(Stmt *b) {
 }
 
 void FnDecl::Check(){
-    printf("FnDecl::Check  ");
-    printf("%s", id->name);
-    printf("\n");
     Decl::Check();
     returnType->Check();
     body->Check();
