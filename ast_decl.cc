@@ -52,7 +52,7 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
      }
 }
 void ClassDecl::Check(){	
-	Decl::Check();
+	//Decl::Check(); // no checar el nombre que se esta definiendo
 	extends->Check();
 	
 	for (int i = 0; i < implements->NumElements(); i++) {
@@ -83,7 +83,7 @@ InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
      }
 }
 void InterfaceDecl::Check(){     
-Decl::Check();
+//Decl::Check(); // no checar el nombre que se esta definiendo
     for (int i = 0; i < members->NumElements(); i++) {
         Decl* decl = members->Nth(i);
         decl->Check();
@@ -132,7 +132,7 @@ void FnDecl::Check(){
     printf("FnDecl::Check  ");
     printf("%s", id->name);
     printf("\n");
-    Decl::Check();
+    //Decl::Check(); no checar el nombre que se esta definiendo
     returnType->Check();
     body->Check();
 
