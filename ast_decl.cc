@@ -78,6 +78,7 @@ void ClassDecl::CheckOverrideMismatch() {
                 ReportError::OverrideMismatch(decl);
         }
         
+        // implements
         for (int i = 0; i < implements->NumElements(); i++) {
             Decl *im = implements->Nth(i)->table->Lookup(decl->id->name);
             if (im != NULL) {
