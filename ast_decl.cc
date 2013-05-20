@@ -62,6 +62,47 @@ void ClassDecl::Check(){
         Decl* decl = members->Nth(i);
         decl->Check();
     }
+    CheckOverrideMismatch();
+}
+void ClassDecl::CheckOverrideMismatch() {
+    // extends
+    Iterator<Decl*> iter = table->GetIterator();
+    Decl *decl;
+    while ((decl = iter.GetNextValue()) != NULL) {
+        Decl *ex = extends->table->Lookup(decl->id->name);
+        if (ex != NULL) {
+            if (dynamic_cast<VarDecl*>(ex) != NULL)
+                ReportError::DeclConflict(decl, ex);
+            else if (dynamic_cast<FnDecl*>(ex) != NULL && dynamic_cast<FnDecl*>(decl) != NULL && listEquals(dynamic_cast<FnDecl*>(decl)->formals, dynamic_cast<FnDecl*>(ex)->formals))
+                ReportError::OverrideMismatch(decl);
+        }
+        
+        // implements
+        for (int i = 0; i < implements->NumElements(); i++) {
+            Decl *im = implements->Nth(i)->table->Lookup(decl->id->name);
+            if (im != NULL) {
+                if (dynamic_cast<VarDecl*>(ex) != NULL)
+                    ReportError::DeclConflict(decl, ex);
+                else if (dynamic_cast<FnDecl*>(ex) != NULL && dynamic_cast<FnDecl*>(decl) != NULL && listEquals(dynamic_cast<FnDecl*>(decl)->formals, dynamic_cast<FnDecl*>(ex)->formals))
+                    ReportError::OverrideMismatch(decl);
+            }
+        }
+        
+        
+    }
+}
+bool ClassDecl::listEquals(List<VarDecl*> *l1, List<VarDecl*> *l2){
+    bool same;
+    if (l1->NumElements() != l2->NumElements())
+        return 0;
+    
+    for (int i = 0; i < l1->NumElements(); i++) {
+        if (l1->Nth(i)->type == l2->Nth(i)->type && l1->Nth(i)->id->name == l2->Nth(i)->id->name)
+            same = 1;
+        else
+            same = 0;
+    }
+    return same;
 }
 
 
