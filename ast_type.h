@@ -47,9 +47,8 @@ class ArrayType : public Type
 {
 public:
     Type *elemType;
-
     ArrayType(yyltype loc, Type *elemType);
-        void Check();
+    void Check();
     void PrintToStream(std::ostream& out) { out << elemType << "[]"; }
 };
 
