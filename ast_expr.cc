@@ -110,7 +110,7 @@ Hashtable<Decl*>* scope;
 			 		ClassDecl* extendsDecl=dynamic_cast<ClassDecl*>(buscaDecl(classDecl->extends->typeName));
 			 		
 			 		while(extendsDecl && (valor=dynamic_cast<VarDecl*>(extendsDecl->table->Lookup(namedType->typeName)))==NULL ){
-			 			extendsDecl = dynamic_cast<ClassDecl*>(buscaDecl(classDecl->extends->typeName));
+			 			extendsDecl = dynamic_cast<ClassDecl*>(buscaDecl(extendsDecl->extends->typeName));
 			 		}
 			 		if( valor  ){
 			 			type=valor->type;
@@ -178,15 +178,31 @@ for (int i = 0; i < actuals->NumElements(); i++) {
 				type=fnDecl->returnType;
 			else{
 				//no esta en la clase
-				ReportError::FieldNotFoundInBase(field, base->type);
+				
+				//buscar en las clases e interfaces que hereda
+			 		ClassDecl* extendsDecl=dynamic_cast<ClassDecl*>(buscaDecl(classDecl->extends->typeName));
+			 		FnDecl* valor;
+			 		while(extendsDecl && (valor=dynamic_cast<FnDecl*>(extendsDecl->table->Lookup(field->name)))==NULL ){
+			 			extendsDecl = dynamic_cast<ClassDecl*>(buscaDecl(extendsDecl->extends->typeName));
+			 		}
+			 		if( valor  ){
+			 			type=valor->returnType;
+			 		}else{	
+			 		//no esta
+				 		ReportError::FieldNotFoundInBase(field, base->type);
+				 		type = Type::errorType;
+			 		}
+				//ReportError::FieldNotFoundInBase(field, base->type);
 			}
 		}else{
 			//ni siquiera es una clase
 			ArrayType* arrayType;
-			if( (arrayType=dynamic_cast<ArrayType*>(base->type)) && strcmp(field->name,"length")==0 )
+			if( (arrayType=dynamic_cast<ArrayType*>(base->type)) )
 				type=Type::intType;
-			else
+			else{
 				ReportError::FieldNotFoundInBase(field, base->type);
+				type=Type::errorType;
+			}
 		}
 	
 	}

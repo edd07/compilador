@@ -77,7 +77,6 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
 void ConditionalStmt::Check(){
 	test->Check();
     body->Check();
-    
     if(test->type!=Type::boolType) ReportError::TestNotBoolean(test);
 }
 
