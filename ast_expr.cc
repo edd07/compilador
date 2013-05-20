@@ -105,8 +105,20 @@ Hashtable<Decl*>* scope;
 			 	if(valor){
 			 		type = valor->type;
 			 	}else{
-			 		ReportError::FieldNotFoundInBase(field, base->type);
-			 		type = Type::errorType;
+			 		
+			 		//buscar en las clases e interfaces que hereda
+			 		ClassDecl* extendsDecl=dynamic_cast<ClassDecl*>(buscaDecl(classDecl->extends->typeName));
+			 		
+			 		while(extendsDecl && (valor=dynamic_cast<VarDecl*>(extendsDecl->table->Lookup(namedType->typeName)))==NULL ){
+			 			extendsDecl = dynamic_cast<ClassDecl*>(buscaDecl(classDecl->extends->typeName));
+			 		}
+			 		if( valor  ){
+			 			type=valor->type;
+			 		}else{	
+			 		//no esta
+				 		ReportError::FieldNotFoundInBase(field, base->type);
+				 		type = Type::errorType;
+			 		}
 			 	}
 			 }else{
 			 	type = Type::errorType;
@@ -248,7 +260,7 @@ void EqualityExpr::Check(){
 }
 
 void LogicalExpr::Check(){
-	left->Check();
+	if(left) left->Check();
 	right->Check();
 	if(left->type!=Type::boolType ||  right->type!=Type::boolType){ 
 		ReportError::IncompatibleOperands(op, left->type, right->type);	
@@ -263,7 +275,7 @@ void AssignExpr::Check(){
 	if(left->type!=Type::boolType ||  right->type!=Type::boolType){ 
 		ReportError::IncompatibleOperands(op, left->type, right->type);	
 	}
-	type=left->type;
+	type=Type::voidType;
 }
 
 

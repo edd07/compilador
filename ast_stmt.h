@@ -100,7 +100,8 @@ class IfStmt : public ConditionalStmt
 class BreakStmt : public Stmt 
 {
   public:
-    BreakStmt(yyltype loc) : Stmt(loc) {}    
+    BreakStmt(yyltype loc) : Stmt(loc) {} 
+    void Check();  
 };
 
 class ReturnStmt : public Stmt  

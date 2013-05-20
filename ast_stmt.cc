@@ -147,6 +147,21 @@ for (int i = 0; i < args->NumElements(); i++) {
      }
 }
 
+void BreakStmt::Check(){
+	//encontrar el LoopStmt mas cercano
+	//encontrar la FnDecl mas cercana
+	Node* ptr = this;
+	LoopStmt* loopStmt;
+	bool flag = true;
+	while( (loopStmt=dynamic_cast<LoopStmt*>(ptr))!=NULL && flag ){
+		ptr=ptr->parent;
+		if(dynamic_cast<Program*>(ptr)) flag=false;
+	}
+
+	if(!loopStmt)
+		ReportError::BreakOutsideLoop(this);
+}
+
 void Stmt::Check(){}
 
 
