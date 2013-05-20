@@ -80,7 +80,7 @@ FieldAccess::FieldAccess(Expr *b, Identifier *f)
   : LValue(b? Join(b->GetLocation(), f->GetLocation()) : *f->GetLocation()) {
     Assert(f != NULL); // b can be be NULL (just means no explicit base)
     base = b; 
-    
+    if(base) base->SetParent(this);
 	(field=f)->SetParent(this);
 }
 void FieldAccess::Check(){
@@ -101,23 +101,28 @@ Hashtable<Decl*>* scope;
 			 Decl* decl = buscaDecl(namedType->typeName);
 			 ClassDecl* classDecl = dynamic_cast<ClassDecl*>(decl);
 			 if(classDecl){
-			 	VarDecl* valor = dynamic_cast<VarDecl*>(classDecl->table->Lookup(namedType->typeName));
+			 	VarDecl* valor = dynamic_cast<VarDecl*>(classDecl->table->Lookup(field->name));
 			 	if(valor){
 			 		type = valor->type;
 			 	}else{
 			 		
 			 		//buscar en las clases e interfaces que hereda
-			 		ClassDecl* extendsDecl=dynamic_cast<ClassDecl*>(buscaDecl(classDecl->extends->typeName));
-			 		
-			 		while(extendsDecl && (valor=dynamic_cast<VarDecl*>(extendsDecl->table->Lookup(namedType->typeName)))==NULL ){
-			 			extendsDecl = dynamic_cast<ClassDecl*>(buscaDecl(extendsDecl->extends->typeName));
-			 		}
-			 		if( valor  ){
-			 			type=valor->type;
-			 		}else{	
-			 		//no esta
-				 		ReportError::FieldNotFoundInBase(field, base->type);
-				 		type = Type::errorType;
+			 		if(classDecl->extends){
+				 		ClassDecl* extendsDecl=dynamic_cast<ClassDecl*>(buscaDecl(classDecl->extends->typeName));
+				 		
+				 		while(extendsDecl && (valor=dynamic_cast<VarDecl*>(extendsDecl->table->Lookup(field->name)))==NULL ){
+				 			extendsDecl = dynamic_cast<ClassDecl*>(buscaDecl(extendsDecl->extends->typeName));
+				 		}
+				 		if( valor  ){
+				 			type=valor->type;
+				 		}else{	
+				 		//no esta
+					 		ReportError::FieldNotFoundInBase(field, base->type);
+					 		type = Type::errorType;
+				 		}
+			 		}else{
+			 			ReportError::FieldNotFoundInBase(field, base->type);
+					 		type = Type::errorType;
 			 		}
 			 	}
 			 }else{
@@ -190,7 +195,7 @@ for (int i = 0; i < actuals->NumElements(); i++) {
 			 		}else{	
 			 		//no esta
 				 		ReportError::FieldNotFoundInBase(field, base->type);
-				 		//type = Type::errorType;
+				 		type = Type::errorType;
 			 		}
 				//ReportError::FieldNotFoundInBase(field, base->type);
 			}
@@ -272,7 +277,7 @@ void RelationalExpr::Check(){
 void EqualityExpr::Check(){
 	left->Check();
 	right->Check();
-	if(left->type!=right->type){ //binary
+	if(! left->type->IsCompatibleTo(right->type,this) ){ //binary
 		ReportError::IncompatibleOperands(op, left->type, right->type);	
 				type=Type::errorType;
 	}
@@ -293,7 +298,7 @@ void LogicalExpr::Check(){
 void AssignExpr::Check(){
 	left->Check();
 	right->Check();
-	if( left->type->IsEquivalentTo(right->type) ){ 
+	if( left->type->IsCompatibleTo(right->type,this) ){ 
 			type=Type::voidType;
 	}else{
 	ReportError::IncompatibleOperands(op, left->type, right->type);	
@@ -307,6 +312,26 @@ void ReadIntegerExpr::Check(){
 
 void ReadLineExpr::Check(){
 	type=Type::stringType;
+}
+
+void This::Check(){
+		// busca la classDecl mas cercana
+		Node* ptr = this;
+		ClassDecl* classDecl=NULL;
+		bool flag = true;
+		while( classDecl==NULL && flag ){
+			ptr=ptr->parent;
+			classDecl=dynamic_cast<ClassDecl*>(ptr);
+			if(dynamic_cast<Program*>(ptr)) flag=false;
+		}
+
+		if(classDecl){
+	    	type = new NamedType(classDecl->id);
+    	 }
+    	else {
+    		 type = Type::errorType;
+    		 ReportError::ThisOutsideClassScope(this);
+    	}
 }
 
 

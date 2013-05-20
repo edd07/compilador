@@ -169,22 +169,9 @@ class This : public Expr
   public:
     This(yyltype loc) : Expr(loc)
     {
-    	// busca la classDecl mas cercana
-    	Node* ptr = this->parent;
-    	ClassDecl* decl = NULL;
-    	bool flag = true;
-    	while(flag && !decl){
-    	    decl = dynamic_cast<ClassDecl*>(ptr);
-    		ptr = ptr->parent;
-    		Program* prg = dynamic_cast<Program*>(ptr);
-    		if(prg!=NULL) flag=false;
-    	}
-    	if(!flag){
-    	 type = Type::errorType;
-    	 ReportError::ThisOutsideClassScope(this);
-    	 }
-    	else type = new NamedType(decl->id);
+    	
     }
+    void Check();
 };
 
 class ArrayAccess : public LValue 

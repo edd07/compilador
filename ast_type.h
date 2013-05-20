@@ -29,7 +29,8 @@ class Type : public Node
     
     virtual void PrintToStream(std::ostream& out) { out << typeName; }
     friend std::ostream& operator<<(std::ostream& out, Type *t) { t->PrintToStream(out); return out; }
-    virtual bool IsEquivalentTo(Type *other) { return this == other; }
+    virtual bool IsEquivalentTo(Type *other) {return this == other; }
+    virtual bool IsCompatibleTo(Type *other,Node* scope);
     virtual void Check();
 };
 
@@ -39,7 +40,8 @@ class NamedType : public Type
     Identifier *id;
     NamedType(Identifier *i);
     void Check();
-    
+    bool IsEquivalentTo(Type *other);
+    bool IsCompatibleTo(Type *other,Node* scope);
     void PrintToStream(std::ostream& out) { out << id; }
 };
 
@@ -49,8 +51,12 @@ public:
     Type *elemType;
     ArrayType(yyltype loc, Type *elemType);
     void Check();
+    bool IsEquivalentTo(Type *other);
+    bool IsCompatibleTo(Type *other,Node* scope);
     void PrintToStream(std::ostream& out) { out << elemType << "[]"; }
 };
+
+
 
  
 #endif

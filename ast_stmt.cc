@@ -121,13 +121,13 @@ void ReturnStmt::Check(){
 	Node* ptr = this;
 	FnDecl* fnDecl;
 	bool flag = true;
-	while( (fnDecl=dynamic_cast<FnDecl*>(ptr))!=NULL && flag ){
+	while( (fnDecl=dynamic_cast<FnDecl*>(ptr))==NULL && flag ){
 		ptr=ptr->parent;
 		if(dynamic_cast<Program*>(ptr)) flag=false;
 	}
 
 	if(fnDecl){
-		if (fnDecl->returnType!=expr->type)
+		if (!fnDecl->returnType->IsCompatibleTo(expr->type,this))
 			  ReportError::ReturnMismatch(this, expr->type, fnDecl->returnType);
 
 	}else{
@@ -152,7 +152,7 @@ void BreakStmt::Check(){
 	Node* ptr = this;
 	LoopStmt* loopStmt;
 	bool flag = true;
-	while( (loopStmt=dynamic_cast<LoopStmt*>(ptr))!=NULL && flag ){
+	while( (loopStmt=dynamic_cast<LoopStmt*>(ptr))==NULL && flag ){
 		ptr=ptr->parent;
 		if(dynamic_cast<Program*>(ptr)) flag=false;
 	}
