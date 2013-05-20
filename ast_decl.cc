@@ -131,7 +131,7 @@ void FnDecl::Check(){
     //Decl::Check(); no checar el nombre que se esta definiendo
     
     returnType->Check();
-    body->Check();
+    if(body) body->Check();
 
      
     for (int i = 0; i < formals->NumElements(); i++) {

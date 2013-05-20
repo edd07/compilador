@@ -16,9 +16,11 @@
 #include "ast.h"
 #include "ast_stmt.h"
 #include "list.h"
+#include "ast_type.h"
+#include "ast_decl.h"
 
-class NamedType; // for new
-class Type; // for NewArray
+//class NamedType; // for new
+//class Type; // for NewArray
 
 
 class Expr : public Stmt 
@@ -27,6 +29,7 @@ class Expr : public Stmt
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
     virtual void Check();
+    Type* type;
 };
 
 /* This node type is used for those places where an expression is optional.
@@ -79,7 +82,7 @@ class StringConstant : public Expr
 class NullConstant: public Expr 
 {
   public: 
-    NullConstant(yyltype loc) : Expr(loc) {}
+    NullConstant(yyltype loc) : Expr(loc) {type=Type::nullType;}
 };
 
 class Operator : public Node 
@@ -108,36 +111,51 @@ class CompoundExpr : public Expr
 class ArithmeticExpr : public CompoundExpr 
 {
   public:
-    ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
-    ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
+    ArithmeticExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) 
+    {
+    	if(right->type==left->type){
+    		type=right->type;
+    	}else{
+    		type=Type::errorType;
+    	}
+    }
+    ArithmeticExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs)
+    {
+    	type=right->type;
+    }
+	void Check();
 };
 
 class RelationalExpr : public CompoundExpr 
 {
   public:
-    RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
+    RelationalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {type = Type::boolType;}
+    void Check();
 };
 
 class EqualityExpr : public CompoundExpr 
 {
   public:
-    EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
+    EqualityExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) { type = Type::boolType;}
     const char *GetPrintNameForNode() { return "EqualityExpr"; }
+    void Check();
 };
 
 class LogicalExpr : public CompoundExpr 
 {
   public:
-    LogicalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
+    LogicalExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {type = Type::boolType;}
     LogicalExpr(Operator *op, Expr *rhs) : CompoundExpr(op,rhs) {}
     const char *GetPrintNameForNode() { return "LogicalExpr"; }
+    void Check();
 };
 
 class AssignExpr : public CompoundExpr 
 {
   public:
-    AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {}
+    AssignExpr(Expr *lhs, Operator *op, Expr *rhs) : CompoundExpr(lhs,op,rhs) {type = Type::voidType;}
     const char *GetPrintNameForNode() { return "AssignExpr"; }
+    void Check();
 };
 
 class LValue : public Expr 
@@ -149,7 +167,24 @@ class LValue : public Expr
 class This : public Expr 
 {
   public:
-    This(yyltype loc) : Expr(loc) {}
+    This(yyltype loc) : Expr(loc)
+    {
+    	// busca la classDecl mas cercana
+    	Node* ptr = this->parent;
+    	ClassDecl* decl = NULL;
+    	bool flag = true;
+    	while(flag && !decl){
+    	    decl = dynamic_cast<ClassDecl*>(ptr);
+    		ptr = ptr->parent;
+    		Program* prg = dynamic_cast<Program*>(ptr);
+    		if(prg!=NULL) flag=false;
+    	}
+    	if(!flag){
+    	 type = Type::errorType;
+    	 ReportError::ThisOutsideClassScope(this);
+    	 }
+    	else type = new NamedType(decl->id);
+    }
 };
 
 class ArrayAccess : public LValue 

@@ -25,6 +25,19 @@ Node::Node() {
     parent = NULL;
     table = new Hashtable<Decl*>();
 }
+
+Decl* Node::buscaDecl(char* name){
+	// busca la Decl del nombre dado en todos los scopes visibles
+	bool flag = true;
+	Node* ptr = this;
+	while(flag && ptr->table->Lookup(name)==NULL ){
+		ptr = ptr->parent;
+		Program* prg = dynamic_cast<Program*>(ptr);
+		if(prg!=NULL) flag=false;
+	}
+    return ptr->table->Lookup(name);
+	
+}
 	 
 Identifier::Identifier(yyltype loc, const char *n) : Node(loc) {
     name = strdup(n);
@@ -58,6 +71,8 @@ void Identifier::Check(){
             reason = LookingForType;
     else if (dynamic_cast<FnDecl*>(ptr) != 0)
         reason = LookingForFunction;
+    else
+    	reason = LookingForVariable; // default
 	
 	bool flag = true;
 	while(flag && ptr->table->Lookup(name)==NULL ){
@@ -70,5 +85,6 @@ void Identifier::Check(){
 	if(!flag && ptr->table->Lookup(name)==NULL){
 	
 		ReportError::IdentifierNotDeclared(this, reason);
+	}
 }
 
