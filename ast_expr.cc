@@ -192,6 +192,19 @@ for (int i = 0; i < actuals->NumElements(); i++) {
 			 		}
 			 		if( valor  ){
 			 			type=valor->returnType;
+			 			
+			 			//checar los parametros
+			 			if(actuals->NumElements()!=valor->formals->NumElements()){
+			 			ReportError::NumArgsMismatch(valor->id, valor->formals->NumElements(), actuals->NumElements());
+			 			}
+			 			
+			 			for (int j = 0; j < actuals->NumElements(); j++) {
+								Expr* expr = actuals->Nth(j);
+								if(!valor->formals->Nth(j)->type->IsCompatibleTo(expr->type,this) ){
+									ReportError::ArgMismatch(expr, j, expr->type, valor->formals->Nth(j)->type);
+								}
+						 }
+			 			
 			 		}else{	
 			 		//no esta
 				 		ReportError::FieldNotFoundInBase(field, base->type);
