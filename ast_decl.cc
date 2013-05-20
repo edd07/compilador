@@ -52,11 +52,32 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
 }
 void ClassDecl::Check(){	
 	//Decl::Check(); // no checar el nombre que se esta definiendo
-	if(extends) extends->Check();
-	
+	if(extends) {
+		extends->Check();
+		//agregar a este scope las variables de la clase heredada
+		ClassDecl* classDecl = dynamic_cast<ClassDecl*>(buscaDecl(extends->typeName));
+		if(classDecl){
+			classDecl->Check();
+			Iterator<Decl*> iter = classDecl->table->GetIterator();
+		    Decl *decl;
+		    while ((decl = iter.GetNextValue()) != NULL) {
+		        this->table->Enter(decl->id->name,decl);
+		    }
+		}
+	}
 	for (int i = 0; i < implements->NumElements(); i++) {
         NamedType* nType = implements->Nth(i);
         nType->Check();
+        //agregar a este scope las variables de la interface implementada
+        InterfaceDecl* interf = dynamic_cast<InterfaceDecl*>(buscaDecl(nType->typeName));
+        if(interf){
+        	interf->Check();
+        	Iterator<Decl*> iter = interf->table->GetIterator();
+            Decl *decl;
+            while ((decl = iter.GetNextValue()) != NULL) {
+                this->table->Enter(decl->id->name,decl);
+            }
+        }
      }
      
     for (int i = 0; i < members->NumElements(); i++) {

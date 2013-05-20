@@ -30,10 +30,9 @@ Decl* Node::buscaDecl(char* name){
 	// busca la Decl del nombre dado en todos los scopes visibles
 	bool flag = true;
 	Node* ptr = this;
-	while(flag && ptr->table->Lookup(name)==NULL ){
-		ptr = ptr->parent;
-		Program* prg = dynamic_cast<Program*>(ptr);
-		if(prg!=NULL) flag=false;
+	while(ptr->table->Lookup(name)==NULL ){
+		if(ptr->parent!=NULL) ptr = ptr->parent;
+		else break;
 	}
     return ptr->table->Lookup(name);
 	

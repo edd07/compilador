@@ -190,7 +190,7 @@ for (int i = 0; i < actuals->NumElements(); i++) {
 			 		}else{	
 			 		//no esta
 				 		ReportError::FieldNotFoundInBase(field, base->type);
-				 		type = Type::errorType;
+				 		//type = Type::errorType;
 			 		}
 				//ReportError::FieldNotFoundInBase(field, base->type);
 			}
@@ -237,7 +237,7 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
 void NewArrayExpr::Check(){
 size->Check();
 elemType->Check();
-type=elemType;
+type=new ArrayType(*location,elemType);
 }
 
 void Expr::Check(){
@@ -250,8 +250,10 @@ void ArithmeticExpr::Check(){
 	right->Check();
 	if(left && left->type!=right->type){ //binary
 		ReportError::IncompatibleOperands(op, left->type, right->type);	
+				type=Type::errorType;
 	}else if(right->type!=Type::doubleType && right->type!=Type::intType){
 		ReportError::IncompatibleOperand(op, right->type); // unary
+				type=Type::errorType;
 	}
 	if(left->type==right->type)
 		type=left->type;
@@ -262,6 +264,7 @@ void RelationalExpr::Check(){
 	right->Check();
 	if(left->type!=right->type){ //binary
 		ReportError::IncompatibleOperands(op, left->type, right->type);	
+				type=Type::errorType;
 	}
 	type=Type::boolType;
 }
@@ -271,27 +274,39 @@ void EqualityExpr::Check(){
 	right->Check();
 	if(left->type!=right->type){ //binary
 		ReportError::IncompatibleOperands(op, left->type, right->type);	
+				type=Type::errorType;
 	}
 	type=Type::boolType;
 }
 
 void LogicalExpr::Check(){
+
 	if(left) left->Check();
 	right->Check();
-	if(left->type!=Type::boolType ||  right->type!=Type::boolType){ 
+	if((left&&left->type!=Type::boolType) ||  right->type!=Type::boolType){ 
 		ReportError::IncompatibleOperands(op, left->type, right->type);	
+				type=Type::errorType;
 	}
 	type=Type::boolType;
 }
 
 void AssignExpr::Check(){
-	//TODO: hacer que las clases padres sean compatibles con las hijas
 	left->Check();
 	right->Check();
-	if(left->type!=Type::boolType ||  right->type!=Type::boolType){ 
-		ReportError::IncompatibleOperands(op, left->type, right->type);	
+	if( left->type->IsEquivalentTo(right->type) ){ 
+			type=Type::voidType;
+	}else{
+	ReportError::IncompatibleOperands(op, left->type, right->type);	
+		type=Type::errorType;
 	}
-	type=Type::voidType;
+}
+
+void ReadIntegerExpr::Check(){
+	type=Type::intType;
+}
+
+void ReadLineExpr::Check(){
+	type=Type::stringType;
 }
 
 
