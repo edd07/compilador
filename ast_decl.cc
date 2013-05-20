@@ -38,7 +38,6 @@ ClassDecl::ClassDecl(Identifier *n, NamedType *ex, List<NamedType*> *imp, List<D
     (implements=imp)->SetParentAll(this);
     (members=m)->SetParentAll(this);
     
-    
     for (int i = 0; i < m->NumElements(); i++) {
     		Decl* decl = m->Nth(i);
     		Decl* prev = table->Lookup(decl->id->name);

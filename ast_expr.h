@@ -26,8 +26,8 @@
 class Expr : public Stmt 
 {
   public:
-    Expr(yyltype loc) : Stmt(loc) {}
-    Expr() : Stmt() {}
+    Expr(yyltype loc) : Stmt(loc) {type=Type::errorType;}
+    Expr() : Stmt() {type=Type::errorType;}
     virtual void Check();
     Type* type;
 };

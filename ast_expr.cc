@@ -63,7 +63,17 @@ ArrayAccess::ArrayAccess(yyltype loc, Expr *b, Expr *s) : LValue(loc) {
 void ArrayAccess::Check(){
 base->Check();
 subscript->Check();
-type = base->type;
+ArrayType* arrayType;
+
+if(! (arrayType=dynamic_cast<ArrayType*>(base->type)) ){
+	  ReportError::BracketsOnNonArray(base);
+	  type=Type::errorType;
+}else
+	type = arrayType->elemType; 
+	
+
+if(subscript->type!=Type::intType)
+	 ReportError::SubscriptNotInteger(subscript);
 }
      
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
@@ -132,20 +142,42 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  {
     
 }
 void Call::Check(){
-field->Check();
+//field->Check();
 for (int i = 0; i < actuals->NumElements(); i++) {
     		Expr* expr = actuals->Nth(i);
 			expr->Check();
      }
      
-// determinar tipo
+    // determinar tipo
     FnDecl* fnDecl;
-    Decl* decl = buscaDecl(field->name);
-    if(decl!=NULL && (fnDecl = dynamic_cast<FnDecl*>(decl)) ){
-    	type = fnDecl->returnType;
-    } else{
-    	type = Type::errorType;
-    }
+    type = Type::errorType;
+    if(!base){
+	    Decl* decl = buscaDecl(field->name);
+	    if(decl!=NULL && (fnDecl = dynamic_cast<FnDecl*>(decl)) )
+    		type = fnDecl->returnType;
+	}else{
+		base->Check();
+		// encontrar la definicion de la clase donde se define la funcion		
+		NamedType* namedType = dynamic_cast<NamedType*>( base->type );
+		if(namedType){
+			ClassDecl* classDecl = dynamic_cast<ClassDecl*>(buscaDecl(namedType->typeName));
+			FnDecl* fnDecl;
+			if(classDecl && (fnDecl=dynamic_cast<FnDecl*>(classDecl->table->Lookup(field->name)) )  )
+				type=fnDecl->returnType;
+			else{
+				//no esta en la clase
+				ReportError::FieldNotFoundInBase(field, base->type);
+			}
+		}else{
+			//ni siquiera es una clase
+			ArrayType* arrayType;
+			if( (arrayType=dynamic_cast<ArrayType*>(base->type)) && strcmp(field->name,"length")==0 )
+				type=Type::intType;
+			else
+				ReportError::FieldNotFoundInBase(field, base->type);
+		}
+	
+	}
 }
  
 
