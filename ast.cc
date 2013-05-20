@@ -67,8 +67,7 @@ void Identifier::Check(){
 	}
 	
 
-	if(!flag && ptr->table->Lookup(name)==NULL){
-	
+	if(!flag && ptr->table->Lookup(name)==NULL)
 		ReportError::IdentifierNotDeclared(this, reason);
 }
 

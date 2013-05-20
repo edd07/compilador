@@ -45,15 +45,18 @@ class ClassDecl : public Decl
 {
   protected:
     List<Decl*> *members;
-    NamedType *extends;
+    
     
 
   public:
+    NamedType *extends;
     List<NamedType*> *implements;
     ClassDecl(Identifier *name, NamedType *extends, 
     List<NamedType*> *implements, List<Decl*> *members);
     
     void Check();
+    void CheckOverrideMismatch();
+    bool listEquals(List<VarDecl*> *l1, List<VarDecl*> *l2);
 };
 
 class InterfaceDecl : public Decl 
@@ -70,11 +73,11 @@ class InterfaceDecl : public Decl
 class FnDecl : public Decl 
 {
   protected:
-    List<VarDecl*> *formals;
     Type *returnType;
     Stmt *body;
     
   public:
+    List<VarDecl*> *formals;
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     void SetFunctionBody(Stmt *b);
     
