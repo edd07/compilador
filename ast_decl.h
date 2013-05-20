@@ -55,8 +55,6 @@ class ClassDecl : public Decl
     List<NamedType*> *implements, List<Decl*> *members);
     
     void Check();
-    void CheckOverrideMismatch();
-    bool listEquals(List<VarDecl*> *l1, List<VarDecl*> *l2);
 };
 
 class InterfaceDecl : public Decl 

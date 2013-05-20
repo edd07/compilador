@@ -45,12 +45,10 @@ class NamedType : public Type
 
 class ArrayType : public Type 
 {
-  protected:
-    Type *elemType;
-
   public:
+    Type *elemType;
     ArrayType(yyltype loc, Type *elemType);
-        void Check();
+    void Check();
     void PrintToStream(std::ostream& out) { out << elemType << "[]"; }
 };
 

@@ -8,6 +8,7 @@
 #include "ast_stmt.h"
 #include "errors.h"
 #include "hashtable.h"
+#include <cstring>
         
          
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
@@ -63,48 +64,8 @@ void ClassDecl::Check(){
         Decl* decl = members->Nth(i);
         decl->Check();
     }
-    CheckOverrideMismatch();
 }
-void ClassDecl::CheckOverrideMismatch() {
-    // extends
-    Iterator<Decl*> iter = table->GetIterator();
-    Decl *decl;
-    while ((decl = iter.GetNextValue()) != NULL) {
-        Decl *ex = extends->table->Lookup(decl->id->name);
-        if (ex != NULL) {
-            if (dynamic_cast<VarDecl*>(ex) != NULL)
-                ReportError::DeclConflict(decl, ex);
-            else if (dynamic_cast<FnDecl*>(ex) != NULL && dynamic_cast<FnDecl*>(decl) != NULL && listEquals(dynamic_cast<FnDecl*>(decl)->formals, dynamic_cast<FnDecl*>(ex)->formals))
-                ReportError::OverrideMismatch(decl);
-        }
-        
-        // implements
-        for (int i = 0; i < implements->NumElements(); i++) {
-            Decl *im = implements->Nth(i)->table->Lookup(decl->id->name);
-            if (im != NULL) {
-                if (dynamic_cast<VarDecl*>(ex) != NULL)
-                    ReportError::DeclConflict(decl, ex);
-                else if (dynamic_cast<FnDecl*>(ex) != NULL && dynamic_cast<FnDecl*>(decl) != NULL && listEquals(dynamic_cast<FnDecl*>(decl)->formals, dynamic_cast<FnDecl*>(ex)->formals))
-                    ReportError::OverrideMismatch(decl);
-            }
-        }
-        
-        
-    }
-}
-bool ClassDecl::listEquals(List<VarDecl*> *l1, List<VarDecl*> *l2){
-    bool same;
-    if (l1->NumElements() != l2->NumElements())
-        return 0;
-    
-    for (int i = 0; i < l1->NumElements(); i++) {
-        if (l1->Nth(i)->type == l2->Nth(i)->type && l1->Nth(i)->id->name == l2->Nth(i)->id->name)
-            same = 1;
-        else
-            same = 0;
-    }
-    return same;
-}
+
 
 
 InterfaceDecl::InterfaceDecl(Identifier *n, List<Decl*> *m) : Decl(n) {
@@ -173,13 +134,86 @@ void FnDecl::Check(){
     
     returnType->Check();
     if(body) body->Check();
-
+    
+    ClassDecl *parentClass= dynamic_cast<ClassDecl*>(parent);
+    
+    // extends
+    if ( parentClass != NULL && parentClass->extends != NULL ) {
+        Decl* inherited = buscaDecl(parentClass->extends->id->name);
+        
+        if (dynamic_cast<ClassDecl*>(inherited) != NULL) {
+            FnDecl* fn = dynamic_cast<FnDecl*>(dynamic_cast<ClassDecl*>(inherited)->table->Lookup(id->name));
+            if (fn != NULL) {
+                bool same = 1;
+                int i = 0;
+                while (i < fn->formals->NumElements() && same == 1) {
+                    if (fn->formals->Nth(i)->type != formals->Nth(i)->type)
+                        same = 0;
+                    i++;
+                }
+            
+                if (same == 0) {
+                    ReportError::OverrideMismatch(this);
+                }
+            }
+        }
+    }
+    
+    // implements
+    if ( parentClass != NULL && parentClass->implements->NumElements() != 0 ) {
+        for (int i = 0; i < parentClass->implements->NumElements(); i++) {
+            Decl* interface = buscaDecl(parentClass->implements->Nth(i)->id->name);
+            
+            if (dynamic_cast<InterfaceDecl*>(interface) != NULL) {
+                FnDecl* fn = dynamic_cast<FnDecl*>(dynamic_cast<InterfaceDecl*>(interface)->table->Lookup(id->name));
+                if (fn != NULL) {
+                    bool same = 1;
+                    int i = 0;
+                    while (i < fn->formals->NumElements() && same == 1) {
+                        if (fn->formals->Nth(i)->type != formals->Nth(i)->type)
+                            same = 0;
+                        i++;
+                    }
+                
+                    if (same == 0) {
+                        ReportError::OverrideMismatch(this);
+                    }
+                }
+            }
+        }
+    }
      
     for (int i = 0; i < formals->NumElements(); i++) {
         VarDecl* vDecl = formals->Nth(i);
         vDecl->Check();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
