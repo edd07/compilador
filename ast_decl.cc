@@ -74,9 +74,16 @@ void ClassDecl::Check(){
         	interf->Check();
         	Iterator<Decl*> iter = interf->table->GetIterator();
             Decl *decl;
+            bool flag=true; //asumimos que esta completa
             while ((decl = iter.GetNextValue()) != NULL) {
-                this->table->Enter(decl->id->name,decl);
+                if(!this->table->Lookup(decl->id->name)){ //falto una decl de la interfaz en nuestra clase
+                	flag=false;
+                	break;
+                }
+                
             }
+            if(!flag)
+            	ReportError::InterfaceNotImplemented(this, nType);
         }
      }
      

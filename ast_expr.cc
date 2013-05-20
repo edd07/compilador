@@ -253,9 +253,14 @@ NewArrayExpr::NewArrayExpr(yyltype loc, Expr *sz, Type *et) : Expr(loc) {
     (elemType=et)->SetParent(this);
 }
 void NewArrayExpr::Check(){
-size->Check();
-elemType->Check();
-type=new ArrayType(*location,elemType);
+	size->Check();
+	elemType->Check();
+	if(size->type == Type::intType)
+		type=new ArrayType(*location,elemType);
+	else{
+		type = Type::errorType;
+		ReportError::NewArraySizeNotInteger(size);
+	}
 }
 
 void Expr::Check(){
