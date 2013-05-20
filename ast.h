@@ -48,6 +48,7 @@ class Node
     void SetParent(Node *p)  { parent = p; }
     Node *GetParent()        { return parent; }
     virtual void Check()=0;
+    Decl* buscaDecl(char*);
 };
    
 

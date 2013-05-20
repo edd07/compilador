@@ -77,11 +77,13 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
 void ConditionalStmt::Check(){
 	test->Check();
     body->Check();
+    
+    if(test->type!=Type::boolType) ReportError::TestNotBoolean(test);
 }
 
-void LoopStmt::Check(){}
+void LoopStmt::Check(){ConditionalStmt::Check();}
 void WhileStmt::Check(){
-ConditionalStmt::Check();
+LoopStmt::Check();
 }
 
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) { 
@@ -91,9 +93,8 @@ ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) {
 }
 void ForStmt::Check(){
 	init->Check();
-	test->Check();
 	step->Check();
-	body->Check();
+	LoopStmt::Check();
 }
 
 IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) { 
@@ -102,9 +103,11 @@ IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) {
     if (elseBody) elseBody->SetParent(this);
 }
 void IfStmt::Check(){
-test->Check();
-body->Check();
-elseBody->Check();
+	test->Check();
+	body->Check();
+	if(elseBody) elseBody->Check();
+
+	ConditionalStmt::Check();
 }
 
 
@@ -113,7 +116,24 @@ ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) {
     (expr=e)->SetParent(this);
 }
 void ReturnStmt::Check(){
-expr->Check();
+	expr->Check();
+
+	//encontrar la FnDecl mas cercana
+	Node* ptr = this;
+	FnDecl* fnDecl;
+	bool flag = true;
+	while( (fnDecl=dynamic_cast<FnDecl*>(ptr))!=NULL && flag ){
+		ptr=ptr->parent;
+		if(dynamic_cast<Program*>(ptr)) flag=false;
+	}
+
+	if(fnDecl){
+		if (fnDecl->returnType!=expr->type)
+			  ReportError::ReturnMismatch(this, expr->type, fnDecl->returnType);
+
+	}else{
+		//return fuera de lugar
+	}
 }
   
 PrintStmt::PrintStmt(List<Expr*> *a) {    
