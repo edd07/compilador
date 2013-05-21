@@ -37,7 +37,7 @@ void ReportError::OutputError(yyltype *loc, string msg) {
         UnderlineErrorInLine(GetLineNumbered(loc->first_line), loc);
     } else
         cerr << endl << "*** Error." << endl;
-    cerr << "*** " << msg << endl << endl;
+    cerr << "*** " << msg.substr(0, msg.size()-1) << endl << endl;
 }
 
 

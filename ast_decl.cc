@@ -26,7 +26,7 @@ VarDecl::VarDecl(Identifier *n, Type *t) : Decl(n) {
 }
 
 void VarDecl::Check(){
-
+    
 	type->Check();
 }
   
@@ -61,7 +61,12 @@ void ClassDecl::Check(){
 			Iterator<Decl*> iter = classDecl->table->GetIterator();
 		    Decl *decl;
 		    while ((decl = iter.GetNextValue()) != NULL) {
-		        this->table->Enter(decl->id->name,decl);
+		        Decl* prev = table->Lookup(decl->id->name);
+    		
+                if (prev != NULL && dynamic_cast<VarDecl*>(prev) != NULL)
+		            ReportError::DeclConflict(prev, decl);
+		        else 
+		            this->table->Enter(decl->id->name,decl);
 		    }
 		}
 	}
@@ -149,11 +154,7 @@ void FnDecl::SetFunctionBody(Stmt *b) {
     while ((decl = iter.GetNextValue()) != NULL) {
         prev = table->Lookup(decl->id->name);
         
-        if (table->Lookup(decl->id->name) != NULL) {
-            ReportError::DeclConflict(decl, prev);
-        } else {
-            table->Enter(decl->id->name, decl);
-        }
+        table->Enter(decl->id->name, decl);
     }
 }
 
