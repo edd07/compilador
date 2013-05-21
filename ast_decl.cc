@@ -125,6 +125,7 @@ FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {
     (returnType=r)->SetParent(this);
     (formals=d)->SetParentAll(this);
     body = NULL;
+    checked = 0;
     
     for (int i = 0; i < d->NumElements(); i++) {
     		VarDecl* decl = d->Nth(i);
@@ -159,45 +160,26 @@ void FnDecl::SetFunctionBody(Stmt *b) {
 void FnDecl::Check(){
     //Decl::Check(); no checar el nombre que se esta definiendo
     
-    returnType->Check();
-    if(body) body->Check();
-    
-    ClassDecl *parentClass= dynamic_cast<ClassDecl*>(parent);
-    
-    // extends
-    if ( parentClass != NULL && parentClass->extends != NULL ) {
-        Decl* inherited = buscaDecl(parentClass->extends->id->name);
+    if (!checked) {
+        returnType->Check();
+        if(body) body->Check();
         
-        if (dynamic_cast<ClassDecl*>(inherited) != NULL) {
-            FnDecl* fn = dynamic_cast<FnDecl*>(dynamic_cast<ClassDecl*>(inherited)->table->Lookup(id->name));
-            if (fn != NULL) {
-                bool same = 1;
-                int i = 0;
-                while (i < fn->formals->NumElements() && same == 1) {
-                    if (fn->formals->Nth(i)->type != formals->Nth(i)->type)
-                        same = 0;
-                    i++;
-                }
+        ClassDecl *parentClass= dynamic_cast<ClassDecl*>(parent);
+        
+        // extends
+        if ( parentClass != NULL && parentClass->extends != NULL ) {
+            Decl* inherited = buscaDecl(parentClass->extends->id->name);
             
-                if (same == 0) {
-                    ReportError::OverrideMismatch(this);
-                }
-            }
-        }
-    }
-    
-    // implements
-    if ( parentClass != NULL && parentClass->implements->NumElements() != 0 ) {
-        for (int i = 0; i < parentClass->implements->NumElements(); i++) {
-            Decl* interface = buscaDecl(parentClass->implements->Nth(i)->id->name);
-            
-            if (dynamic_cast<InterfaceDecl*>(interface) != NULL) {
-                FnDecl* fn = dynamic_cast<FnDecl*>(dynamic_cast<InterfaceDecl*>(interface)->table->Lookup(id->name));
+            if (dynamic_cast<ClassDecl*>(inherited) != NULL) {
+                FnDecl* fn = dynamic_cast<FnDecl*>(dynamic_cast<ClassDecl*>(inherited)->table->Lookup(id->name));
                 if (fn != NULL) {
                     bool same = 1;
                     int i = 0;
+                    
+                    if (fn->formals->NumElements() != formals->NumElements()) same = 0;
+                    
                     while (i < fn->formals->NumElements() && same == 1) {
-                        if (fn->formals->Nth(i)->type != formals->Nth(i)->type)
+                        if (!fn->formals->Nth(i)->type->IsEquivalentTo(formals->Nth(i)->type))
                             same = 0;
                         i++;
                     }
@@ -208,12 +190,40 @@ void FnDecl::Check(){
                 }
             }
         }
+        
+        // implements
+        if ( parentClass != NULL && parentClass->implements->NumElements() != 0 ) {
+            for (int i = 0; i < parentClass->implements->NumElements(); i++) {
+                Decl* interface = buscaDecl(parentClass->implements->Nth(i)->id->name);
+                
+                if (dynamic_cast<InterfaceDecl*>(interface) != NULL) {
+                    FnDecl* fn = dynamic_cast<FnDecl*>(dynamic_cast<InterfaceDecl*>(interface)->table->Lookup(id->name));
+                    if (fn != NULL) {
+                        bool same = 1;
+                        int i = 0;
+                        
+                        if (fn->formals->NumElements() != formals->NumElements()) same = 0;
+                        
+                        while (i < fn->formals->NumElements() && same == 1) {
+                            if (!fn->formals->Nth(i)->type->IsEquivalentTo(formals->Nth(i)->type))
+                                same = 0;
+                            i++;
+                        }
+                    
+                        if (same == 0) {
+                            ReportError::OverrideMismatch(this);
+                        }
+                    }
+                }
+            }
+        }
+         
+        for (int i = 0; i < formals->NumElements(); i++) {
+            VarDecl* vDecl = formals->Nth(i);
+            vDecl->Check();
+        }
     }
-     
-    for (int i = 0; i < formals->NumElements(); i++) {
-        VarDecl* vDecl = formals->Nth(i);
-        vDecl->Check();
-    }
+    checked = 1;
 }
 
 
